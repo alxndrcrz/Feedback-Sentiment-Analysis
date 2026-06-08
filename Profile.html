@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Feedback Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+        body { background-color: #f0faf9; background-image: radial-gradient(#12938518 1px, transparent 1px); background-size: 28px 28px; }
+        .navbar { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #e2f4f2; position: sticky; top: 0; z-index: 40; }
+        .card { background: #fff; border: 1px solid #e2f4f2; border-radius: 20px; box-shadow: 0 4px 20px rgba(18,147,133,0.06); }
+        .nav-link { font-weight: 600; font-size: 0.875rem; color: #64748b; transition: color 0.2s; }
+        .nav-link:hover { color: #129385; }
+
+        .input-field { width:100%; padding:12px 16px; border-radius:12px; border:1.5px solid #e5e7eb; background:#f9fffe; color:#0f172a; font-size:0.95rem; font-weight:600; outline:none; transition:all 0.2s ease; font-family:'Nunito',sans-serif; }
+        .input-field::placeholder { color:#9ca3af; font-weight:500; }
+        .input-field:focus { border-color:#129385; background:#f0fdfb; box-shadow:0 0 0 3px rgba(18,147,133,0.1); }
+        .input-field:disabled { background:#f8fafc; color:#94a3b8; cursor:not-allowed; border-color:#f1f5f9; }
+        .input-error { border-color:#ef4444!important; background:#fff8f8!important; box-shadow:0 0 0 3px rgba(239,68,68,0.08)!important; }
+
+        .btn-primary { padding:11px 24px; border-radius:12px; background:linear-gradient(135deg,#129385 0%,#0d6e63 100%); color:white; font-weight:800; font-size:0.875rem; border:none; cursor:pointer; transition:all 0.2s ease; box-shadow:0 4px 14px rgba(18,147,133,0.28); display:inline-flex; align-items:center; gap:8px; font-family:'Nunito',sans-serif; }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(18,147,133,0.38); }
+        .btn-primary:disabled { opacity:0.65; cursor:not-allowed; transform:none; }
+        .btn-secondary { padding:11px 24px; border-radius:12px; border:1.5px solid #e5e7eb; background:white; color:#64748b; font-weight:700; font-size:0.875rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:8px; font-family:'Nunito',sans-serif; }
+        .btn-secondary:hover { border-color:#129385; color:#129385; background:#f0fdfb; }
+        .btn-danger { padding:11px 24px; border-radius:12px; border:1.5px solid #fecdd3; background:#fff1f2; color:#dc2626; font-weight:700; font-size:0.875rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:8px; font-family:'Nunito',sans-serif; }
+        .btn-danger:hover { background:#fecdd3; border-color:#fca5a5; }
+
+        .strength-bar { height:4px; border-radius:4px; transition:all 0.3s; background:#e5e7eb; }
+        .readonly-row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:#f8fafc; border:1.5px solid #f1f5f9; border-radius:12px; }
+        .avatar-ring { width:96px; height:96px; border-radius:24px; background:linear-gradient(135deg,#129385 0%,#0a5951 100%); display:flex; align-items:center; justify-content:center; font-size:2.2rem; font-weight:900; color:white; box-shadow:0 8px 24px rgba(18,147,133,0.3); flex-shrink:0; }
+        .role-badge-admin { background:linear-gradient(135deg,#129385,#0a5951); color:white; }
+        .role-badge-user  { background:#f0fdfb; color:#129385; border:1.5px solid #d1faf5; }
+
+        .tab-btn { flex:1; padding:10px 14px; border-radius:10px; font-size:0.82rem; font-weight:700; cursor:pointer; border:none; background:transparent; color:#64748b; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; font-family:'Nunito',sans-serif; }
+        .tab-btn:hover  { background:#f0fdfb; color:#129385; }
+        .tab-btn.active { background:#f0fdfb; color:#129385; border:1.5px solid #d1faf5; font-weight:800; }
+
+        .err-msg { color:#ef4444; font-size:0.72rem; font-weight:700; margin-top:4px; min-height:1rem; display:block; }
+        .section-divider { height:1px; background:linear-gradient(to right,transparent,#e2f4f2,transparent); margin:8px 0; }
+        .info-note { background:#f0fdfb; border:1px solid #d1faf5; border-radius:10px; padding:10px 14px; font-size:0.78rem; font-weight:600; color:#0d6e63; display:flex; align-items:flex-start; gap:8px; }
+
+        .toast { position:fixed; bottom:24px; right:24px; z-index:999; padding:14px 20px; border-radius:14px; font-weight:700; font-size:0.875rem; display:flex; align-items:center; gap:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); transform:translateY(80px); opacity:0; transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .toast.show    { transform:translateY(0); opacity:1; }
+        .toast-success { background:#129385; color:white; }
+        .toast-error   { background:#ef4444; color:white; }
+
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation:fadeIn 0.5s ease forwards; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px)} 60%{transform:translateX(5px)} }
+        .shake { animation:shake 0.3s ease; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .animate-spin { animation:spin 1s linear infinite; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+<nav class="navbar flex items-center justify-between px-8 py-4" id="navbar">
+    <div class="flex items-center gap-2.5">
+        <div class="bg-[#129385] p-1.5 rounded-xl shadow-sm"><i data-lucide="message-square" class="text-white w-5 h-5"></i></div>
+        <span class="font-black text-[#0f172a] text-lg tracking-tight">Feedback <span class="text-[#129385]">Sentiment </span><span class="text-[#0f172a]">Analysis</span></span>
+    </div>
+    <div id="nav-links" class="flex items-center gap-6"></div>
+</nav>
+
+<main class="max-w-4xl mx-auto py-10 px-4 fade-in space-y-6">
+
+    <div>
+        <h1 class="text-4xl font-black text-[#0f172a] tracking-tight">My Profile</h1>
+        <p class="text-gray-500 font-500 mt-1.5">Manage your personal information and account security.</p>
+    </div>
+
+    <!-- Hero Card -->
+    <div class="card p-6">
+        <div class="flex items-center gap-6 flex-wrap">
+            <div class="avatar-ring" id="hero-avatar">?</div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap mb-1">
+                    <h2 id="hero-name" class="text-2xl font-black text-[#0f172a] truncate">Loading...</h2>
+                    <span id="hero-role-badge" class="px-3 py-1 rounded-full text-xs font-800 uppercase tracking-wider"></span>
+                </div>
+                <p id="hero-email" class="text-gray-500 font-600 text-sm truncate"></p>
+                <p id="hero-org"   class="text-[#129385] font-700 text-sm mt-0.5"></p>
+            </div>
+            <!-- Org code chip (admin only) -->
+            <div id="org-code-chip" class="hidden items-center gap-2 bg-teal-50 border border-teal-100 px-4 py-2 rounded-xl">
+                <i data-lucide="key" class="w-4 h-4 text-[#129385]"></i>
+                <div>
+                    <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Org Code</p>
+                    <p id="hero-org-code" class="font-mono font-black text-[#0d6e63] text-sm tracking-widest"></p>
+                </div>
+                <button onclick="copyOrgCode()" id="copy-btn" class="ml-1 p-1.5 rounded-lg hover:bg-teal-100 transition text-[#129385]">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex bg-white border border-gray-100 p-1.5 rounded-2xl shadow-sm gap-1">
+        <button onclick="switchTab('info')"     id="tab-info"     class="tab-btn active"><i data-lucide="user" class="w-4 h-4"></i> Personal Info</button>
+        <button onclick="switchTab('security')" id="tab-security" class="tab-btn"><i data-lucide="shield" class="w-4 h-4"></i> Security</button>
+    </div>
+
+    <!-- ══ TAB: PERSONAL INFO ══ -->
+    <div id="panel-info" class="card p-8 space-y-6">
+        <div>
+            <h3 class="text-lg font-black text-[#0f172a] mb-1">Personal Information</h3>
+            <p class="text-xs text-gray-400 font-600">Only your display name can be changed.</p>
+        </div>
+
+        <!-- Editable name -->
+        <div>
+            <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">
+                Display Name <span class="text-[#129385] normal-case font-600 tracking-normal">— editable</span>
+            </label>
+            <div class="flex gap-3 items-start">
+                <div class="flex-1">
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                        <input type="text" id="input-name" class="input-field pl-11"
+                            placeholder="Your full name"
+                            maxlength="50"
+                            oninput="smartCapitalize(this); clearErr('err-name')">
+                    </div>
+                    <span id="err-name" class="err-msg"></span>
+                </div>
+                <button onclick="saveName()" id="btn-save-name" class="btn-primary mt-0.5">
+                    <i data-lucide="check" class="w-4 h-4"></i> Save
+                </button>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Read-only fields -->
+        <div class="space-y-3">
+            <p class="text-xs font-800 text-gray-400 uppercase tracking-widest">Read-Only Fields</p>
+            <div class="readonly-row">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="mail" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                    <div>
+                        <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Email Address</p>
+                        <p id="ro-email" class="font-700 text-[#0f172a] text-sm">—</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-700 text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">Cannot change</span>
+            </div>
+            <div class="readonly-row">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                    <div>
+                        <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Role</p>
+                        <p id="ro-role" class="font-700 text-[#0f172a] text-sm capitalize">—</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-700 text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">Set at registration</span>
+            </div>
+            <div class="readonly-row">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="building-2" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                    <div>
+                        <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Organization</p>
+                        <p id="ro-org" class="font-700 text-[#0f172a] text-sm">—</p>
+                    </div>
+                </div>
+                <span class="text-[10px] font-700 text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">Assigned by org</span>
+            </div>
+        </div>
+
+        <div class="info-note">
+            <i data-lucide="info" class="w-4 h-4 shrink-0 mt-0.5"></i>
+            <p>Email, role, and organization cannot be changed here. Contact your administrator if changes are needed.</p>
+        </div>
+    </div>
+
+    <!-- ══ TAB: SECURITY ══ -->
+    <div id="panel-security" class="hidden space-y-6">
+
+        <!-- Change Password Card -->
+        <div class="card p-8 space-y-5">
+            <div>
+                <h3 class="text-lg font-black text-[#0f172a] mb-1">Change Password</h3>
+                <p class="text-xs text-gray-400 font-600">You must enter your current password to set a new one.</p>
+            </div>
+
+            <!-- Current Password -->
+            <div>
+                <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Current Password</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                    <input type="password" id="cur-pass" class="input-field pl-11 pr-11"
+                        placeholder="Enter your current password"
+                        oninput="clearErr('err-cur-pass')">
+                    <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#129385] transition-colors focus:outline-none" onclick="togglePw('cur-pass',this)">
+                        <i data-lucide="eye-off" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <span id="err-cur-pass" class="err-msg"></span>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- New Password WITH strength meter -->
+            <div>
+                <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">New Password</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                    <input type="password" id="new-pass" class="input-field pl-11 pr-11"
+                        placeholder="Create a strong new password"
+                        oninput="checkStrength(this.value); clearErr('err-new-pass')">
+                    <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#129385] transition-colors focus:outline-none" onclick="togglePw('new-pass',this)">
+                        <i data-lucide="eye-off" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <!-- Strength bars -->
+                <div class="flex gap-1 mt-2">
+                    <div class="strength-bar flex-1" id="sb1"></div>
+                    <div class="strength-bar flex-1" id="sb2"></div>
+                    <div class="strength-bar flex-1" id="sb3"></div>
+                    <div class="strength-bar flex-1" id="sb4"></div>
+                </div>
+                <span id="strength-label" class="text-[10px] font-700 text-gray-400 mt-1 block"></span>
+                <span id="err-new-pass" class="err-msg"></span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+                <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Confirm New Password</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                    <input type="password" id="confirm-pass" class="input-field pl-11 pr-11"
+                        placeholder="Re-enter new password"
+                        oninput="clearErr('err-confirm-pass')">
+                    <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#129385] transition-colors focus:outline-none" onclick="togglePw('confirm-pass',this)">
+                        <i data-lucide="eye-off" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <span id="err-confirm-pass" class="err-msg"></span>
+            </div>
+
+            <!-- Requirements checklist -->
+            <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 gap-2">
+                <div class="flex items-center gap-2 text-xs font-700" id="req-len">
+                    <i data-lucide="circle" class="w-3.5 h-3.5 text-gray-300"></i><span class="text-gray-400">At least 8 characters</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-700" id="req-upper">
+                    <i data-lucide="circle" class="w-3.5 h-3.5 text-gray-300"></i><span class="text-gray-400">Uppercase letter</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-700" id="req-lower">
+                    <i data-lucide="circle" class="w-3.5 h-3.5 text-gray-300"></i><span class="text-gray-400">Lowercase letter</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-700" id="req-num">
+                    <i data-lucide="circle" class="w-3.5 h-3.5 text-gray-300"></i><span class="text-gray-400">Number</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-700 col-span-2" id="req-special">
+                    <i data-lucide="circle" class="w-3.5 h-3.5 text-gray-300"></i><span class="text-gray-400">Special character (!@#$...)</span>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="clearPasswordForm()" class="btn-secondary"><i data-lucide="x" class="w-4 h-4"></i> Clear</button>
+                <button onclick="changePassword()" id="btn-change-pw" class="btn-primary"><i data-lucide="shield-check" class="w-4 h-4"></i> Update Password</button>
+            </div>
+        </div>
+
+        <!-- Account Security Status — generic, no implementation details -->
+        <div class="card p-8">
+            <h3 class="text-lg font-black text-[#0f172a] mb-5">Account Security Status</h3>
+            <div class="space-y-3">
+                <div class="readonly-row">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                        <div>
+                            <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Two-Factor Verification</p>
+                            <p class="font-700 text-[#0f172a] text-sm">Email verification required on login</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-700 text-green-600 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3 h-3"></i> Enabled
+                    </span>
+                </div>
+                <div class="readonly-row">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="lock" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                        <div>
+                            <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Password Protection</p>
+                            <p class="font-700 text-[#0f172a] text-sm">Secured and protected</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-700 text-green-600 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3 h-3"></i> Active
+                    </span>
+                </div>
+                <div class="readonly-row">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="eye-off" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                        <div>
+                            <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Anonymous Submissions</p>
+                            <p class="font-700 text-[#0f172a] text-sm">Identity fully protected when enabled</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-700 text-[#129385] bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <i data-lucide="shield" class="w-3 h-3"></i> Available
+                    </span>
+                </div>
+                <div class="readonly-row">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="database" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                        <div>
+                            <p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Data Isolation</p>
+                            <p class="font-700 text-[#0f172a] text-sm">Your data is isolated to your organization</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-700 text-green-600 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3 h-3"></i> Enforced
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sign Out -->
+        <div class="card p-8 border-red-100">
+            <h3 class="text-lg font-black text-red-600 mb-1">Sign Out</h3>
+            <p class="text-xs text-gray-400 font-600 mb-5">This will clear your session and return you to the login page.</p>
+            <button onclick="logout()" class="btn-danger"><i data-lucide="log-out" class="w-4 h-4"></i> Sign Out of Account</button>
+        </div>
+    </div>
+
+</main>
+
+<div id="toast" class="toast">
+    <i id="toast-icon" data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
+    <span id="toast-msg"></span>
+</div>
+
+<script>
+lucide.createIcons();
+
+let user = null, profile = null;
+
+window.onload = async () => {
+    user = JSON.parse(localStorage.getItem('user_data'));
+    const session = JSON.parse(localStorage.getItem('supabase_session'));
+    if (!session || !user) { window.location.href = 'LogIn.html'; return; }
+    buildNavbar(user.role);
+    await loadProfile(session.access_token);
+};
+
+function buildNavbar(role) {
+    const nav     = document.getElementById('nav-links');
+    const isAdmin = role?.toLowerCase() === 'admin';
+    const links   = isAdmin
+        ? [
+            { href:'History(Admin).html', label:'Feedback History' },
+            { href:'Sentiment.html',      label:'Sentiment Summary' },
+            { href:'Trends.html',         label:'Trends' },
+            { href:'Organization.html',   label:'Organization' },
+            { href:'Admin-Dashboard.html',label:'Dashboard' },
+          ]
+        : [
+            { href:'feedback(User).html', label:'Submit Feedback' },
+            { href:'History(User).html',  label:'My Feedback' },
+          ];
+    nav.innerHTML = links.map(l => `<a href="${l.href}" class="nav-link">${l.label}</a>`).join('') +
+        `<a href="Profile.html" class="nav-link font-800 text-[#129385] border-b-2 border-[#129385] pb-0.5">Profile</a>
+         <button onclick="logout()" class="flex items-center gap-2 bg-red-50 text-red-600 border border-red-100 px-4 py-2 rounded-xl font-700 hover:bg-red-100 transition text-sm ml-2">
+             <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+         </button>`;
+    lucide.createIcons();
+}
+
+async function loadProfile(token) {
+    try {
+        const res  = await fetch('http://127.0.0.1:8000/api/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok) { profile = data.profile; renderProfile(profile); }
+        else         { renderProfile({ full_name:user.full_name||user.name||'User', email:user.email||'', role:user.role||'user', org_name:user.org_name||'', org_code:user.org_code||'' }); }
+    } catch {
+        renderProfile({ full_name:user.full_name||user.name||'User', email:user.email||'', role:user.role||'user', org_name:user.org_name||'', org_code:user.org_code||'' });
+    }
+}
+
+function renderProfile(p) {
+    const isAdmin  = p.role?.toLowerCase() === 'admin';
+    const initials = (p.full_name||'U').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('hero-avatar').innerText   = initials;
+    document.getElementById('hero-name').innerText     = p.full_name || '—';
+    document.getElementById('hero-email').innerText    = p.email     || '—';
+    document.getElementById('hero-org').innerText      = p.org_name  ? `@ ${p.org_name}` : '';
+    const badge = document.getElementById('hero-role-badge');
+    badge.innerText = isAdmin ? 'Administrator' : 'Employee';
+    badge.className = `px-3 py-1 rounded-full text-xs font-800 uppercase tracking-wider ${isAdmin ? 'role-badge-admin' : 'role-badge-user'}`;
+    if (isAdmin && p.org_code) {
+        const chip = document.getElementById('org-code-chip');
+        chip.classList.remove('hidden'); chip.classList.add('flex');
+        document.getElementById('hero-org-code').innerText = p.org_code;
+    }
+    document.getElementById('ro-email').innerText = p.email    || '—';
+    document.getElementById('ro-role').innerText  = isAdmin ? 'Administrator' : 'Employee';
+    document.getElementById('ro-org').innerText   = p.org_name || '—';
+    document.getElementById('input-name').value   = p.full_name || '';
+    lucide.createIcons();
+}
+
+function switchTab(tab) {
+    ['info','security'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    });
+}
+
+// ── Save name ──────────────────────────────────────────────────────────────
+async function saveName() {
+    const input = document.getElementById('input-name');
+    const name  = input.value.trim();
+    const btn   = document.getElementById('btn-save-name');
+    clearErr('err-name');
+
+    if (!name || name.length < 2) {
+        showErr('err-name','Name must be at least 2 characters.');
+        shakeEl('input-name'); return;
+    }
+    if (name.length > 50) {
+        showErr('err-name','Name cannot exceed 50 characters.');
+        shakeEl('input-name'); return;
+    }
+    if (name === (profile?.full_name || user.full_name)) {
+        showToast('No changes to save.','error'); return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...';
+
+    try {
+        const session = JSON.parse(localStorage.getItem('supabase_session'));
+        const res = await fetch('http://127.0.0.1:8000/api/profile/name', {
+            method:'PATCH',
+            headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${session?.access_token}` },
+            body: JSON.stringify({ full_name: name })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            const stored = JSON.parse(localStorage.getItem('user_data')) || {};
+            stored.full_name = data.full_name;
+            localStorage.setItem('user_data', JSON.stringify(stored));
+            document.getElementById('hero-name').innerText = data.full_name;
+            document.getElementById('hero-avatar').innerText = data.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            if (profile) profile.full_name = data.full_name;
+            showToast('Name updated successfully!','success');
+        } else {
+            showErr('err-name', data.detail || 'Failed to update name.');
+        }
+    } catch {
+        showErr('err-name','Connection error. Is the backend running?');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Save';
+        lucide.createIcons();
+    }
+}
+
+// ── Password strength ──────────────────────────────────────────────────────
+function checkStrength(val) {
+    const checks = {
+        'req-len':     val.length >= 8,
+        'req-upper':   /[A-Z]/.test(val),
+        'req-lower':   /[a-z]/.test(val),
+        'req-num':     /[0-9]/.test(val),
+        'req-special': /[!@#$%^&*(),.?":{}|<>]/.test(val),
+    };
+    Object.entries(checks).forEach(([id, passed]) => {
+        const el   = document.getElementById(id);
+        const icon = el.querySelector('i, svg');
+        const text = el.querySelector('span');
+        icon.setAttribute('data-lucide', passed ? 'check-circle' : 'circle');
+        text.className = passed ? 'text-green-600' : 'text-gray-400';
+    });
+    lucide.createIcons();
+    const score = Object.values(checks).filter(Boolean).length;
+    const colors = ['','#ef4444','#f97316','#eab308','#22c55e'];
+    const labels = ['','Weak','Fair','Good','Strong'];
+    const tColors= ['','text-red-500','text-orange-500','text-yellow-600','text-green-600'];
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById(`sb${i}`).style.backgroundColor = i <= score ? colors[score] : '#e5e7eb';
+    }
+    const lbl = document.getElementById('strength-label');
+    lbl.innerText = val.length > 0 ? `Password strength: ${labels[score]}` : '';
+    lbl.className = `text-[10px] font-700 mt-1 block ${tColors[score] || 'text-gray-400'}`;
+}
+
+// ── Change password ────────────────────────────────────────────────────────
+async function changePassword() {
+    const curPass  = document.getElementById('cur-pass').value;
+    const newPass  = document.getElementById('new-pass').value;
+    const confPass = document.getElementById('confirm-pass').value;
+    const btn      = document.getElementById('btn-change-pw');
+    clearErr('err-cur-pass'); clearErr('err-new-pass'); clearErr('err-confirm-pass');
+
+    let valid = true;
+    if (!curPass) { showErr('err-cur-pass','Current password is required.'); shakeEl('cur-pass'); valid = false; }
+
+    // Full strength validation
+    let msgs = [];
+    if (newPass.length < 8)                             msgs.push('at least 8 characters');
+    if (!/[A-Z]/.test(newPass))                        msgs.push('uppercase letter');
+    if (!/[a-z]/.test(newPass))                        msgs.push('lowercase letter');
+    if (!/[0-9]/.test(newPass))                        msgs.push('number');
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPass))      msgs.push('special character');
+    if (msgs.length) { showErr('err-new-pass',`Must include: ${msgs.join(', ')}.`); shakeEl('new-pass'); valid = false; }
+
+    if (newPass !== confPass) { showErr('err-confirm-pass','Passwords do not match.'); shakeEl('confirm-pass'); valid = false; }
+    if (curPass === newPass)  { showErr('err-new-pass','New password must differ from current.'); shakeEl('new-pass'); valid = false; }
+    if (!valid) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Updating...';
+
+    try {
+        const session = JSON.parse(localStorage.getItem('supabase_session'));
+        const res = await fetch('http://127.0.0.1:8000/api/profile/change-password', {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${session?.access_token}` },
+            body: JSON.stringify({ current_password:curPass, new_password:newPass, confirm_password:confPass })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Password updated! Please log in again.','success');
+            clearPasswordForm();
+            setTimeout(() => { localStorage.clear(); window.location.href = 'LogIn.html'; }, 2500);
+        } else {
+            const msg = data.detail || 'Failed to update password.';
+            if (msg.toLowerCase().includes('current') || msg.toLowerCase().includes('incorrect')) {
+                showErr('err-cur-pass', msg); shakeEl('cur-pass');
+            } else {
+                showErr('err-new-pass', msg); shakeEl('new-pass');
+            }
+        }
+    } catch {
+        showErr('err-cur-pass','Connection error. Is the backend running?');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4"></i> Update Password';
+        lucide.createIcons();
+    }
+}
+
+function clearPasswordForm() {
+    ['cur-pass','new-pass','confirm-pass'].forEach(id => {
+        document.getElementById(id).value = '';
+        document.getElementById(id).classList.remove('input-error');
+    });
+    ['err-cur-pass','err-new-pass','err-confirm-pass'].forEach(clearErr);
+    checkStrength('');
+}
+
+// ── Org code copy ──────────────────────────────────────────────────────────
+function copyOrgCode() {
+    const code = document.getElementById('hero-org-code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
+        lucide.createIcons();
+        setTimeout(() => { btn.innerHTML = '<i data-lucide="copy" class="w-3.5 h-3.5"></i>'; lucide.createIcons(); }, 2000);
+        showToast('Organization code copied!','success');
+    });
+}
+
+// ── Toggle password visibility ────────────────────────────────────────────
+function togglePw(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon  = btn.querySelector('i, svg');
+    if (!input || !icon) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    icon.setAttribute('data-lucide', input.type === 'text' ? 'eye' : 'eye-off');
+    lucide.createIcons({ attrs: { class:'w-4 h-4' } });
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function smartCapitalize(input) {
+    const cursor = input.selectionStart;
+    input.value  = input.value.replace(/(^|[\s.-])\S/g, m => m.toUpperCase());
+    input.setSelectionRange(cursor, cursor);
+}
+function showErr(id, msg) { const el = document.getElementById(id); if (el) el.innerText = '• ' + msg; }
+function clearErr(id)     { const el = document.getElementById(id); if (el) el.innerText = ''; const inp = document.getElementById(id.replace('err-','')); if (inp) inp.classList.remove('input-error'); }
+function shakeEl(id)      { const el = document.getElementById(id); if (!el) return; el.classList.add('input-error','shake'); setTimeout(() => el.classList.remove('shake'), 400); }
+function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').innerText = msg;
+    t.className = `toast show toast-${type}`;
+    document.getElementById('toast-icon').setAttribute('data-lucide', type==='success'?'check-circle':'alert-circle');
+    lucide.createIcons();
+    setTimeout(() => t.classList.remove('show'), 4000);
+}
+function logout() { localStorage.clear(); window.location.href = 'LogIn.html'; }
+</script>
+</body>
+</html>

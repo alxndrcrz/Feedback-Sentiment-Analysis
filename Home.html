@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FeedbackSense — Where Every Voice Finds Meaning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Nunito', sans-serif; scroll-behavior: smooth; }
+
+        /* ── Base ── */
+        body { background: #ffffff; color: #0f172a; overflow-x: hidden; }
+
+        /* ── Nav ── */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(18,147,133,0.12);
+            transition: all 0.3s ease;
+        }
+        .navbar.scrolled {
+            background: rgba(255,255,255,0.98);
+            box-shadow: 0 2px 20px rgba(18,147,133,0.08);
+        }
+        .nav-link { font-weight: 700; font-size: 0.875rem; color: #64748b; transition: color 0.2s; }
+        .nav-link:hover { color: #129385; }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 14px 28px; border-radius: 14px;
+            background: linear-gradient(135deg, #129385 0%, #0d6e63 100%);
+            color: white; font-weight: 800; font-size: 0.95rem;
+            border: none; cursor: pointer; text-decoration: none;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 20px rgba(18,147,133,0.35);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(18,147,133,0.45); }
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 13px 26px; border-radius: 14px;
+            background: white; color: #129385;
+            font-weight: 800; font-size: 0.95rem;
+            border: 2px solid rgba(18,147,133,0.3);
+            cursor: pointer; text-decoration: none;
+            transition: all 0.25s ease;
+        }
+        .btn-secondary:hover { border-color: #129385; background: #f0fdfb; transform: translateY(-2px); }
+
+        /* ── Hero ── */
+        .hero-section {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #f0fdfb 0%, #ffffff 40%, #f8f4ff 100%);
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 120px 0 80px;
+            position: relative; overflow: hidden;
+        }
+        .hero-blob-1 {
+            position: absolute; width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(18,147,133,0.08) 0%, transparent 70%);
+            top: -200px; left: -200px; pointer-events: none;
+        }
+        .hero-blob-2 {
+            position: absolute; width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+            bottom: -100px; right: -100px; pointer-events: none;
+        }
+        .hero-grid {
+            position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(18,147,133,0.12) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none; opacity: 0.5;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(18,147,133,0.1); border: 1px solid rgba(18,147,133,0.2);
+            color: #129385; padding: 6px 14px; border-radius: 999px;
+            font-size: 0.78rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
+        }
+        .hero-headline {
+            font-size: clamp(2.5rem, 5vw, 4.2rem);
+            font-weight: 900; line-height: 1.1;
+            letter-spacing: -0.03em; color: #0f172a;
+        }
+        .headline-accent { color: #129385; position: relative; }
+        .headline-accent::after {
+            content: '';
+            position: absolute; bottom: 4px; left: 0; right: 0;
+            height: 6px; background: rgba(18,147,133,0.2);
+            border-radius: 3px; z-index: -1;
+        }
+
+        /* ── Live Demo Card ── */
+        .demo-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.1), 0 1px 0 rgba(18,147,133,0.1);
+            border: 1px solid rgba(18,147,133,0.12);
+            overflow: hidden;
+        }
+        .demo-topbar {
+            background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 12px 18px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* ── Typewriter ── */
+        .typewriter-cursor { display: inline-block; width: 2px; height: 1em; background: #129385; margin-left: 2px; animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* ── Sentiment pulse animation ── */
+        .sentiment-pulse {
+            animation: pulse-ring 2s ease-out infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+
+        /* ── Section headers ── */
+        .section-label {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(18,147,133,0.08); color: #129385;
+            padding: 5px 14px; border-radius: 999px;
+            font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+        }
+        .section-title { font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 900; line-height: 1.15; color: #0f172a; letter-spacing: -0.02em; }
+        .section-sub { font-size: 1.05rem; color: #64748b; font-weight: 500; line-height: 1.7; max-width: 560px; }
+
+        /* ── How it works ── */
+        .step-number {
+            width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 900; flex-shrink: 0;
+            border: 2px solid;
+        }
+        .step-connector { width: 2px; background: linear-gradient(180deg, rgba(18,147,133,0.3), rgba(18,147,133,0)); flex-shrink: 0; }
+
+        /* ── Feature pills ── */
+        .feature-pill {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 16px; border-radius: 12px;
+            background: #f8fafc; border: 1px solid #e2f4f2;
+            font-size: 0.82rem; font-weight: 700; color: #0f172a;
+        }
+
+        /* ── Trust section ── */
+        .trust-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1a2744 100%);
+            border-radius: 28px; overflow: hidden; position: relative;
+        }
+        .trust-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23129385' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* ── Analytics preview ── */
+        .analytics-card {
+            background: white; border-radius: 20px;
+            border: 1px solid #e2f4f2;
+            box-shadow: 0 8px 32px rgba(18,147,133,0.08);
+            overflow: hidden;
+        }
+        .mini-bar { border-radius: 6px; transition: width 0.8s ease; }
+
+        /* ── Testimonials ── */
+        .testimonial-card {
+            background: white; border-radius: 20px;
+            border: 1px solid #e2f4f2;
+            padding: 28px; position: relative;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+        .testimonial-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(18,147,133,0.1); }
+        .quote-mark { font-size: 4rem; line-height: 1; color: rgba(18,147,133,0.15); font-weight: 900; position: absolute; top: 16px; right: 24px; }
+
+        /* ── Footer ── */
+        .footer-bg { background: #0f172a; }
+        .footer-link { color: #64748b; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: color 0.2s; }
+        .footer-link:hover { color: #5eead4; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: status-pulse 2s ease-in-out infinite; }
+        @keyframes status-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* ── Animations ── */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes scaleIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+
+        .animate-fadeUp { animation: fadeUp 0.7s ease forwards; }
+        .animate-fadeUp-d1 { animation: fadeUp 0.7s 0.1s ease forwards; opacity: 0; }
+        .animate-fadeUp-d2 { animation: fadeUp 0.7s 0.2s ease forwards; opacity: 0; }
+        .animate-fadeUp-d3 { animation: fadeUp 0.7s 0.3s ease forwards; opacity: 0; }
+        .animate-fadeUp-d4 { animation: fadeUp 0.7s 0.4s ease forwards; opacity: 0; }
+
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ── Confidence bar animation ── */
+        .conf-bar { width: 0; transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .conf-bar.animate { width: var(--target-width); }
+
+        /* ── Mobile menu ── */
+        .mobile-menu { display: none; }
+        @media(max-width: 768px) {
+            .desktop-nav { display: none; }
+            .mobile-menu { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav id="navbar" class="navbar">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <!-- Logo -->
+        <a href="Home.html" class="flex items-center gap-2.5 text-decoration-none">
+            <div class="bg-[#129385] p-1.5 rounded-xl shadow-sm">
+                <i data-lucide="message-square" class="text-white w-5 h-5"></i>
+            </div>
+            <span class="font-black text-[#0f172a] text-lg tracking-tight">Feedback <span class="text-[#129385]">Sentiment </span> <span class="text-[#0f172a]">Analysis</span></span>
+        </a>
+
+        <!-- Desktop Nav -->
+        <div class="desktop-nav flex items-center gap-8">
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#ai-insight" class="nav-link">AI Insight</a>
+            <a href="#privacy" class="nav-link">Privacy</a>
+            <a href="#analytics" class="nav-link">For Admins</a>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="desktop-nav flex items-center gap-3">
+            <a href="LogIn.html" class="nav-link px-4 py-2 rounded-xl border border-gray-200 hover:border-[#129385] hover:bg-teal-50 transition">Login</a>
+            <a href="User-Registration.html" class="btn-primary" style="padding: 10px 20px; font-size: 0.85rem;">
+                Get Started <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+
+        <!-- Mobile hamburger -->
+        <button class="mobile-menu p-2 rounded-xl hover:bg-gray-100 transition" onclick="toggleMobileMenu()">
+            <i data-lucide="menu" class="w-5 h-5 text-gray-600"></i>
+        </button>
+    </div>
+
+    <!-- Mobile menu panel -->
+    <div id="mobileMenu" class="hidden mobile-menu border-t border-gray-100 px-6 py-4 space-y-3 bg-white">
+        <a href="#how-it-works" class="block nav-link py-2" onclick="toggleMobileMenu()">How It Works</a>
+        <a href="#ai-insight" class="block nav-link py-2" onclick="toggleMobileMenu()">AI Insight</a>
+        <a href="#privacy" class="block nav-link py-2" onclick="toggleMobileMenu()">Privacy</a>
+        <a href="#analytics" class="block nav-link py-2" onclick="toggleMobileMenu()">For Admins</a>
+        <div class="flex gap-3 pt-2 border-t border-gray-100">
+            <a href="LogIn.html" class="btn-secondary flex-1 justify-center" style="padding:10px;">Login</a>
+            <a href="User-Registration.html" class="btn-primary flex-1 justify-center" style="padding:10px;">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="hero-section">
+    <div class="hero-grid"></div>
+    <div class="hero-blob-1"></div>
+    <div class="hero-blob-2"></div>
+
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+            <!-- Left: Copy -->
+            <div class="space-y-8">
+                <div class="animate-fadeUp">
+                    <span class="hero-badge">
+                        <i data-lucide="zap" class="w-3 h-3"></i>
+                        AI-Powered Workplace Intelligence
+                    </span>
+                </div>
+
+                <h1 class="hero-headline animate-fadeUp-d1">
+                    Where Every Voice <br>
+                    <span class="headline-accent">Finds Meaning.</span>
+                </h1>
+
+                <p class="text-lg text-gray-500 font-500 leading-relaxed max-w-lg animate-fadeUp-d2">
+                    Speak honestly. Our AI-powered sentiment analysis ensures your feedback is <strong class="text-gray-700">understood</strong>, <strong class="text-gray-700">valued</strong>, and <strong class="text-gray-700">categorized</strong> — anonymously or openly — then transformed into real workplace change.
+                </p>
+
+
+                <!-- Social proof strip -->
+                <div class="flex flex-wrap items-center gap-6 animate-fadeUp-d4 pt-2">
+                    <div class="flex items-center gap-2">
+                        <div class="flex -space-x-2">
+                            <div class="w-8 h-8 rounded-full bg-teal-200 border-2 border-white flex items-center justify-center text-xs font-800 text-teal-800">JR</div>
+                            <div class="w-8 h-8 rounded-full bg-blue-200 border-2 border-white flex items-center justify-center text-xs font-800 text-blue-800">AM</div>
+                            <div class="w-8 h-8 rounded-full bg-purple-200 border-2 border-white flex items-center justify-center text-xs font-800 text-purple-800">KL</div>
+                        </div>
+                        <span class="text-sm font-700 text-gray-500">Trusted by teams</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="status-dot"></div>
+                        <span class="text-sm font-700 text-gray-500">AI Model Online</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <i data-lucide="shield" class="w-4 h-4 text-[#129385]"></i>
+                        <span class="text-sm font-700 text-gray-500">End-to-end encrypted</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Live Demo Card -->
+            <div class="animate-fadeUp-d2 lg:pl-4">
+                <div class="demo-card">
+                    <div class="demo-topbar">
+                        <div class="dot bg-red-400"></div>
+                        <div class="dot bg-yellow-400"></div>
+                        <div class="dot bg-green-400"></div>
+                        <span class="ml-2 text-xs font-700 text-gray-400">feedbacksense — live analysis</span>
+                    </div>
+                    <div class="p-6 space-y-5">
+                        <!-- Input area -->
+                        <div>
+                            <p class="text-xs font-800 text-gray-400 uppercase tracking-widest mb-2">Your Feedback</p>
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 min-h-[80px]">
+                                <p id="typewriterText" class="text-gray-700 font-500 text-sm leading-relaxed"></p>
+                                <span class="typewriter-cursor" id="cursor"></span>
+                            </div>
+                        </div>
+
+                        <!-- Analysis running -->
+                        <div id="analysisSection" class="hidden">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-5 h-5 rounded-full border-2 border-[#129385] border-t-transparent animate-spin"></div>
+                                <span class="text-xs font-700 text-[#129385]">Analyzing sentiment...</span>
+                            </div>
+                        </div>
+
+                        <!-- Result -->
+                        <div id="resultSection" class="hidden space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="sentiment-pulse w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                                        <i data-lucide="smile" class="w-4 h-4 text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-900 text-green-600 text-sm">Positive Sentiment</p>
+                                        <p class="text-xs text-gray-400 font-600">Detected in 0.3s</p>
+                                    </div>
+                                </div>
+                                <span class="text-2xl font-900 text-green-600" id="confPercent">0%</span>
+                            </div>
+
+                            <!-- Confidence bar -->
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-xs font-700 text-gray-400">
+                                    <span>Confidence</span>
+                                    <span id="confLabel">0%</span>
+                                </div>
+                                <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div id="confBar" class="conf-bar h-full bg-green-500 rounded-full" style="--target-width: 92%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="flex flex-wrap gap-2">
+                                <span class="feature-pill text-xs"><i data-lucide="folder" class="w-3.5 h-3.5 text-blue-500"></i>Company Culture</span>
+                                <span class="feature-pill text-xs"><i data-lucide="building" class="w-3.5 h-3.5 text-orange-500"></i>HR Department</span>
+                                <span class="feature-pill text-xs"><i data-lucide="eye-off" class="w-3.5 h-3.5 text-purple-500"></i>Anonymous</span>
+                            </div>
+
+                            <div class="bg-green-50 border border-green-100 rounded-xl p-3 flex items-start gap-2.5">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-green-600 mt-0.5 shrink-0"></i>
+                                <p class="text-xs text-green-700 font-600 leading-relaxed">Routed to HR — Management supervisor notified for review.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     STATS BAR
+══════════════════════════════════════ -->
+<section class="bg-[#0f172a] py-10">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center reveal">
+                <p class="text-3xl font-900 text-white mb-1">NLP</p>
+                <p class="text-sm font-600 text-slate-400">AI-Powered Analysis</p>
+            </div>
+            <div class="text-center reveal">
+                <p class="text-3xl font-900 text-[#5eead4] mb-1">100%</p>
+                <p class="text-sm font-600 text-slate-400">Anonymous Option</p>
+            </div>
+            <div class="text-center reveal">
+                <p class="text-3xl font-900 text-white mb-1">Real-time</p>
+                <p class="text-sm font-600 text-slate-400">Admin Dashboard</p>
+            </div>
+            <div class="text-center reveal">
+                <p class="text-3xl font-900 text-[#5eead4] mb-1">Supabase</p>
+                <p class="text-sm font-600 text-slate-400">Secure & Encrypted</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════ -->
+<section id="how-it-works" class="py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-20 reveal">
+            <span class="section-label"><i data-lucide="map" class="w-3 h-3"></i>The Process</span>
+            <h2 class="section-title mt-4 mb-4 mx-auto">From thought to transformation<br>in four steps.</h2>
+            <p class="section-sub mx-auto text-center">We've built a transparent, anxiety-free process so every employee feels safe speaking up.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+            <!-- Step 1 -->
+            <div class="reveal group p-8 rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-lg hover:shadow-teal-50 transition-all duration-300 relative">
+                <div class="absolute top-6 right-6 text-6xl font-900 text-gray-50 group-hover:text-teal-50 transition-colors select-none">01</div>
+                <div class="step-number bg-teal-50 border-teal-200 text-[#129385] mb-5 relative z-10">
+                    <i data-lucide="pencil-line" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-lg font-900 text-[#0f172a] mb-2">Express</h3>
+                <p class="text-gray-500 font-500 text-sm leading-relaxed">Share your thoughts on workload, culture, leadership, or work environment — freely and in your own words.</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="text-[10px] font-800 bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full">Workload</span>
+                    <span class="text-[10px] font-800 bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full">Culture</span>
+                    <span class="text-[10px] font-800 bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full">Leadership</span>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="reveal group p-8 rounded-2xl border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-50 transition-all duration-300 relative" style="transition-delay:0.1s">
+                <div class="absolute top-6 right-6 text-6xl font-900 text-gray-50 group-hover:text-purple-50 transition-colors select-none">02</div>
+                <div class="step-number bg-purple-50 border-purple-200 text-purple-600 mb-5 relative z-10">
+                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-lg font-900 text-[#0f172a] mb-2">Analyze</h3>
+                <p class="text-gray-500 font-500 text-sm leading-relaxed">Our NLP model instantly detects the emotional weight and intensity behind your message — beyond just the words.</p>
+                <div class="mt-4 space-y-1.5">
+                    <div class="flex items-center gap-2 text-xs font-700 text-gray-500">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>Positive intent detected
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-700 text-gray-500">
+                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>Intensity scored 0–100
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="reveal group p-8 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-50 transition-all duration-300 relative" style="transition-delay:0.2s">
+                <div class="absolute top-6 right-6 text-6xl font-900 text-gray-50 group-hover:text-blue-50 transition-colors select-none">03</div>
+                <div class="step-number bg-blue-50 border-blue-200 text-blue-600 mb-5 relative z-10">
+                    <i data-lucide="git-branch" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-lg font-900 text-[#0f172a] mb-2">Categorize</h3>
+                <p class="text-gray-500 font-500 text-sm leading-relaxed">Feedback is automatically routed to the right department and supervisor, ensuring nothing gets lost in the process.</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="text-[10px] font-800 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Auto-routing</span>
+                    <span class="text-[10px] font-800 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Dept tagging</span>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="reveal group p-8 rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-lg hover:shadow-orange-50 transition-all duration-300 relative" style="transition-delay:0.3s">
+                <div class="absolute top-6 right-6 text-6xl font-900 text-gray-50 group-hover:text-orange-50 transition-colors select-none">04</div>
+                <div class="step-number bg-orange-50 border-orange-200 text-orange-600 mb-5 relative z-10">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-lg font-900 text-[#0f172a] mb-2">Resolve</h3>
+                <p class="text-gray-500 font-500 text-sm leading-relaxed">Admins see real-time analytics, identify patterns, and take data-driven action to genuinely improve the workplace.</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="text-[10px] font-800 bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Real-time data</span>
+                    <span class="text-[10px] font-800 bg-orange-50 text-orange-700 px-2.5 py-1 rounded-full">Trend charts</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     AI INSIGHT
+══════════════════════════════════════ -->
+<section id="ai-insight" class="py-28" style="background: linear-gradient(160deg, #f8f4ff 0%, #f0fdfb 100%);">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+
+            <!-- Left: Animated Analysis Cards -->
+            <div class="space-y-4 reveal">
+
+                <!-- Feedback being typed -->
+                <div class="analytics-card p-5">
+                    <p class="text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-3">Employee submits</p>
+                    <p class="text-gray-700 font-500 text-sm leading-relaxed italic">"The new mentorship program is truly inspiring and has changed how I approach my work."</p>
+                </div>
+
+                <!-- AI breakdown -->
+                <div class="analytics-card p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[10px] font-800 text-gray-400 uppercase tracking-widest">AI Analysis Result</p>
+                        <span class="text-[10px] font-800 bg-green-100 text-green-700 px-2.5 py-1 rounded-full">0.3s processing</span>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-green-500 flex items-center justify-center shadow-lg shadow-green-200">
+                            <i data-lucide="smile" class="w-7 h-7 text-white"></i>
+                        </div>
+                        <div>
+                            <p class="font-900 text-green-600 text-xl">Positive</p>
+                            <p class="text-xs text-gray-400 font-600">High emotional intensity detected</p>
+                        </div>
+                        <span class="ml-auto text-3xl font-900 text-green-600">92%</span>
+                    </div>
+
+                    <!-- Breakdown bars -->
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs font-700 text-gray-500 mb-1.5">
+                                <span>Positivity score</span><span class="text-green-600">0.92</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="mini-bar h-full bg-green-500 reveal-bar" style="width: 92%; --w: 92%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-700 text-gray-500 mb-1.5">
+                                <span>Engagement signal</span><span class="text-blue-600">0.85</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="mini-bar h-full bg-blue-400" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-700 text-gray-500 mb-1.5">
+                                <span>Negative signal</span><span class="text-red-400">0.02</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="mini-bar h-full bg-red-400" style="width: 2%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Routing outcome -->
+                    <div class="border-t border-gray-100 pt-3 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-[#129385]"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-800 text-gray-700">Routed → HR Department</p>
+                            <p class="text-[10px] text-gray-400 font-600">Tagged: Company Culture · Mentorship · John Smith</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Explanation -->
+            <div class="space-y-8 reveal">
+                <div>
+                    <span class="section-label"><i data-lucide="brain" class="w-3 h-3"></i>The AI Magic</span>
+                    <h2 class="section-title mt-4 mb-4">We understand <em>how</em> people feel, not just <em>what</em> they say.</h2>
+                    <p class="section-sub">Our Natural Language Processing engine goes beyond simple keyword scanning. It understands emotional weight, context, and intensity — the same way a thoughtful person reads between the lines.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-teal-200 transition-colors">
+                        <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
+                            <i data-lucide="zap" class="w-5 h-5 text-[#129385]"></i>
+                        </div>
+                        <div>
+                            <p class="font-800 text-gray-800 text-sm mb-1">Instant analysis</p>
+                            <p class="text-gray-500 text-xs font-500 leading-relaxed">Results appear in under a second. No waiting, no batching — feedback is understood the moment it's submitted.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-purple-200 transition-colors">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+                            <i data-lucide="layers" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-800 text-gray-800 text-sm mb-1">Multi-dimensional scoring</p>
+                            <p class="text-gray-500 text-xs font-500 leading-relaxed">Sentiment polarity, confidence score, and department routing — all in one pass, fully automated.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-5 rounded-2xl bg-white border border-gray-100 hover:border-blue-200 transition-colors">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-800 text-gray-800 text-sm mb-1">Continuous improvement</p>
+                            <p class="text-gray-500 text-xs font-500 leading-relaxed">The more feedback submitted, the richer the trend data — helping admins spot patterns before they become problems.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     PRIVACY
+══════════════════════════════════════ -->
+<section id="privacy" class="py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="trust-card p-12 md:p-16">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+
+                <!-- Left -->
+                <div class="space-y-8">
+                    <div>
+                        <span class="section-label" style="background:rgba(94,234,212,0.15);color:#5eead4;border-color:rgba(94,234,212,0.2);">
+                            <i data-lucide="shield-check" class="w-3 h-3"></i>Your Privacy, Our Priority
+                        </span>
+                        <h2 class="section-title mt-4 mb-4 text-white">Your identity is <em style="color:#5eead4">yours</em> to share — or keep.</h2>
+                        <p class="text-slate-400 font-500 leading-relaxed">We built FeedbackSense for the employees who have the most to say but the most to lose by saying it. That's why we've made anonymity a first-class feature — not an afterthought.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center shrink-0 border border-teal-700">
+                                <i data-lucide="eye-off" class="w-5 h-5 text-teal-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-800 text-white text-sm mb-1">Anonymous toggle</p>
+                                <p class="text-slate-400 text-xs font-500 leading-relaxed">When enabled, your name is permanently stripped from the admin view. They see the message — never the messenger.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center shrink-0 border border-teal-700">
+                                <i data-lucide="database" class="w-5 h-5 text-teal-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-800 text-white text-sm mb-1">Encrypted storage via Supabase</p>
+                                <p class="text-slate-400 text-xs font-500 leading-relaxed">All feedback is stored with row-level security. Only your organization's admin can access data from your org — no one else.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center shrink-0 border border-teal-700">
+                                <i data-lucide="lock" class="w-5 h-5 text-teal-400"></i>
+                            </div>
+                            <div>
+                                <p class="font-800 text-white text-sm mb-1">Zero re-identification</p>
+                                <p class="text-slate-400 text-xs font-500 leading-relaxed">Anonymous entries don't store any user ID in the database. Once submitted, the link is gone forever — technically unrecoverable.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Toggle demo -->
+                <div class="flex justify-center">
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm space-y-4">
+                        <p class="text-xs font-800 text-slate-400 uppercase tracking-widest">Submit Feedback As</p>
+
+                        <!-- Named option -->
+                        <div id="namedCard" class="p-4 rounded-xl bg-slate-700 border-2 border-[#129385] cursor-pointer transition-all" onclick="switchPrivacy('named')">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-xs font-900 text-white">JR</div>
+                                <div>
+                                    <p class="font-800 text-white text-sm">Juan Reyes</p>
+                                    <p class="text-[10px] text-teal-400 font-700">Engineering · John Smith</p>
+                                </div>
+                                <div class="ml-auto w-4 h-4 rounded-full bg-[#129385] flex items-center justify-center" id="namedCheck">
+                                    <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-600">Your name and department are visible to your admin.</p>
+                        </div>
+
+                        <!-- Anonymous option -->
+                        <div id="anonCard" class="p-4 rounded-xl bg-slate-900 border-2 border-slate-700 cursor-pointer transition-all" onclick="switchPrivacy('anon')">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                                    <i data-lucide="user-x" class="w-4 h-4 text-slate-400"></i>
+                                </div>
+                                <div>
+                                    <p class="font-800 text-white text-sm italic">Anonymous</p>
+                                    <p class="text-[10px] text-slate-500 font-700">Identity hidden</p>
+                                </div>
+                                <div class="ml-auto w-4 h-4 rounded-full border-2 border-slate-600" id="anonCheck"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 font-600">Your identity is permanently removed. Admins only see your message.</p>
+                        </div>
+
+                        <p id="privacyNote" class="text-[10px] text-slate-500 font-600 text-center">Named submissions help build accountability culture.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     ADMIN ANALYTICS PREVIEW
+══════════════════════════════════════ -->
+<section id="analytics" class="py-28" style="background: #f8fafc;">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+
+            <!-- Left: Copy -->
+            <div class="space-y-8 reveal lg:pt-8">
+                <div>
+                    <span class="section-label"><i data-lucide="bar-chart-3" class="w-3 h-3"></i>For Administrators</span>
+                    <h2 class="section-title mt-4 mb-4">Spot burnout before it becomes a resignation.</h2>
+                    <p class="section-sub">Don't wait for exit interviews to learn what went wrong. FeedbackSense gives you a real-time view of morale across departments, supervisors, and time.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-[#129385] flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>
+                        </div>
+                        <p class="text-gray-600 font-600 text-sm">Track sentiment trends by department, category, and supervisor in real time</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-[#129385] flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>
+                        </div>
+                        <p class="text-gray-600 font-600 text-sm">Identify which teams are thriving and which need immediate attention</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-[#129385] flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>
+                        </div>
+                        <p class="text-gray-600 font-600 text-sm">Export data as CSV for deeper analysis or board-level reporting</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-[#129385] flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>
+                        </div>
+                        <p class="text-gray-600 font-600 text-sm">Filter by time range, category, or department for surgical insights</p>
+                    </div>
+                </div>
+
+                <a href="Admin-Registration.html" class="btn-primary inline-flex">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    Register Your Organization
+                </a>
+            </div>
+
+            <!-- Right: Dashboard preview -->
+            <div class="space-y-4 reveal">
+                <!-- Stat strip -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="analytics-card p-4 text-center">
+                        <p class="text-2xl font-900 text-[#0f172a]">247</p>
+                        <p class="text-xs font-700 text-gray-400 mt-0.5">Total Feedback</p>
+                    </div>
+                    <div class="analytics-card p-4 text-center">
+                        <p class="text-2xl font-900 text-green-600">68%</p>
+                        <p class="text-xs font-700 text-gray-400 mt-0.5">Positive Rate</p>
+                    </div>
+                    <div class="analytics-card p-4 text-center">
+                        <p class="text-2xl font-900 text-red-500">12%</p>
+                        <p class="text-xs font-700 text-gray-400 mt-0.5">Needs Action</p>
+                    </div>
+                </div>
+
+                <!-- Department heatmap -->
+                <div class="analytics-card p-5">
+                    <p class="text-xs font-800 text-gray-400 uppercase tracking-widest mb-4">Department Sentiment Score</p>
+                    <div class="space-y-3.5">
+                        <div>
+                            <div class="flex justify-between text-sm font-700 mb-1.5">
+                                <span class="text-gray-700">Marketing</span>
+                                <span class="text-green-600 font-900">+0.87</span>
+                            </div>
+                            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-green-500 rounded-full" style="width:87%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-700 mb-1.5">
+                                <span class="text-gray-700">Sales</span>
+                                <span class="text-green-500 font-900">+0.60</span>
+                            </div>
+                            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-green-400 rounded-full" style="width:60%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-700 mb-1.5">
+                                <span class="text-gray-700">Engineering</span>
+                                <span class="text-yellow-600 font-900">+0.20</span>
+                            </div>
+                            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-yellow-400 rounded-full" style="width:20%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm font-700 mb-1.5">
+                                <span class="text-gray-700">Operations</span>
+                                <span class="text-red-500 font-900">-0.45</span>
+                            </div>
+                            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-400 rounded-full" style="width:45%"></div></div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-100 flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                        <p class="text-xs text-red-600 font-700">Operations flagged — 3 consecutive negative weeks.</p>
+                    </div>
+                </div>
+
+                <!-- Trend mini chart -->
+                <div class="analytics-card p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-xs font-800 text-gray-400 uppercase tracking-widest">7-Day Trend</p>
+                        <div class="flex gap-3 text-[10px] font-700">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>Positive</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-400 inline-block"></span>Negative</span>
+                        </div>
+                    </div>
+                    <!-- Simple visual bars -->
+                    <div class="flex items-end gap-2 h-20">
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:55%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:30%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">M</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:70%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:15%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">T</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:45%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:45%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">W</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:80%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:10%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">T</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:60%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:25%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">F</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:30%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:5%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">S</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 flex-1">
+                            <div class="w-full rounded-t-md" style="height:90%;background:#22c55e;opacity:0.7"></div>
+                            <div class="w-full rounded-t-md" style="height:5%;background:#ef4444;opacity:0.6"></div>
+                            <span class="text-[9px] text-gray-400 font-700">S</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════ -->
+<section class="py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16 reveal">
+            <span class="section-label"><i data-lucide="message-circle" class="w-3 h-3"></i>Voices</span>
+            <h2 class="section-title mt-4 mb-2">What employees & admins say.</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="testimonial-card reveal">
+                <div class="quote-mark">"</div>
+                <p class="text-gray-600 font-500 text-sm leading-relaxed mb-5">"Finally, a tool where I can say what I actually think about the workload without worrying it'll get traced back to me. The anonymous mode gave me the courage to speak up about our team's burnout."</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center text-xs font-900 text-teal-700">AR</div>
+                    <div>
+                        <p class="font-800 text-gray-800 text-sm">Alexandra R.</p>
+                        <p class="text-xs text-gray-400 font-600">Software Engineer · Engineering Dept.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card reveal" style="transition-delay:0.1s">
+                <div class="quote-mark">"</div>
+                <p class="text-gray-600 font-500 text-sm leading-relaxed mb-5">"As an HR manager, the department sentiment scores changed how I allocate resources. I could see Operations was trending negative three weeks before two people resigned. We acted early."</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-xs font-900 text-blue-700">MC</div>
+                    <div>
+                        <p class="font-800 text-gray-800 text-sm">Maria C.</p>
+                        <p class="text-xs text-gray-400 font-600">HR Manager · People Operations</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card reveal" style="transition-delay:0.2s">
+                <div class="quote-mark">"</div>
+                <p class="text-gray-600 font-500 text-sm leading-relaxed mb-5">"The AI sentiment analysis is surprisingly accurate. Our mentorship program feedback scored 92% positive — it gave us data-backed proof that the initiative was working when the board asked."</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-xs font-900 text-purple-700">JL</div>
+                    <div>
+                        <p class="font-800 text-gray-800 text-sm">James L.</p>
+                        <p class="text-xs text-gray-400 font-600">CEO · Growth & Strategy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     CTA SECTION
+══════════════════════════════════════ -->
+<section class="py-28" style="background: linear-gradient(135deg, #129385 0%, #0a5951 60%, #0f172a 100%);">
+    <div class="max-w-4xl mx-auto px-6 text-center reveal">
+        <h2 class="text-4xl md:text-5xl font-900 text-white leading-tight mb-6">
+            Ready to build a workplace<br>where honesty drives change?
+        </h2>
+        <p class="text-teal-200 font-500 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+            Join your organization, submit your first piece of feedback, and watch it become actionable intelligence — in seconds.
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center">
+            <a href="User-Registration.html" class="btn-primary" style="background: white; color: #129385; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Register as Employee
+            </a>
+            <a href="Admin-Registration.html" class="btn-secondary" style="color: white; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                Register Organization
+            </a>
+        </div>
+        <p class="text-teal-300 text-sm font-600 mt-6 opacity-70">Already have an account? <a href="LogIn.html" class="text-white underline hover:no-underline">Sign in here</a></p>
+    </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer class="footer-bg py-16">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+
+            <!-- Brand -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-[#129385] p-1.5 rounded-xl">
+                        <i data-lucide="message-square" class="text-white w-4 h-4"></i>
+                    </div>
+                    <span class="font-black text-white text-lg">Feedback<span class="text-[#5eead4]">Sense</span></span>
+                </div>
+                <p class="text-slate-500 text-sm font-500 leading-relaxed">AI-powered employee feedback analysis. Bridging honesty and action in the modern workplace.</p>
+                <div class="flex items-center gap-2">
+                    <div class="status-dot"></div>
+                    <span class="text-xs text-slate-500 font-700">AI Model: NLP Workplace-Enhanced — Online</span>
+                </div>
+            </div>
+
+            <!-- Employee -->
+            <div>
+                <p class="text-xs font-800 text-slate-500 uppercase tracking-widest mb-4">Employee</p>
+                <div class="space-y-3">
+                    <a href="feedback(User).html" class="footer-link block">Submit Feedback</a>
+                    <a href="History(User).html" class="footer-link block">My History</a>
+                    <a href="User-Registration.html" class="footer-link block">Register</a>
+                    <a href="LogIn.html" class="footer-link block">Sign In</a>
+                </div>
+            </div>
+
+            <!-- Admin -->
+            <div>
+                <p class="text-xs font-800 text-slate-500 uppercase tracking-widest mb-4">Administrator</p>
+                <div class="space-y-3">
+                    <a href="Admin-Dashboard.html" class="footer-link block">Dashboard</a>
+                    <a href="History(Admin).html" class="footer-link block">Feedback History</a>
+                    <a href="Sentiment.html" class="footer-link block">Sentiment Summary</a>
+                    <a href="Trends.html" class="footer-link block">Trends</a>
+                    <a href="Organization.html" class="footer-link block">Organization</a>
+                    <a href="Admin-Registration.html" class="footer-link block">Register Org</a>
+                </div>
+            </div>
+
+            <!-- System -->
+            <div>
+                <p class="text-xs font-800 text-slate-500 uppercase tracking-widest mb-4">System</p>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <div class="status-dot"></div>
+                        <span class="text-slate-500 text-sm font-600">API Online</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="status-dot"></div>
+                        <span class="text-slate-500 text-sm font-600">Supabase Connected</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="status-dot"></div>
+                        <span class="text-slate-500 text-sm font-600">NLP Model Active</span>
+                    </div>
+                    <a href="http://127.0.0.1:8000/docs" target="_blank" class="footer-link block mt-2">API Documentation ↗</a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-slate-600 text-sm font-600">© 2026 FeedbackSense Analysis. Built with FastAPI + Supabase.</p>
+            <p class="text-slate-700 text-xs font-600">Powered by Natural Language Processing · Row-Level Security · Anonymous-First Design</p>
+        </div>
+    </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════ -->
+<script>
+    lucide.createIcons();
+
+    /* ── Navbar scroll effect ── */
+    window.addEventListener('scroll', () => {
+        document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    /* ── Mobile menu ── */
+    function toggleMobileMenu() {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+    }
+
+    /* ── Intersection Observer for reveal animations ── */
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ── Hero Typewriter ── */
+    const phrases = [
+        "The new mentorship program is truly inspiring.",
+        "Workload has been overwhelming this quarter.",
+        "Team communication has improved significantly.",
+        "I feel unheard in our weekly meetings.",
+        "Management support has been exceptional lately.",
+    ];
+    let phraseIdx = 0, charIdx = 0, typing = true;
+    const typeEl    = document.getElementById('typewriterText');
+    const analysis  = document.getElementById('analysisSection');
+    const result    = document.getElementById('resultSection');
+    const confBar   = document.getElementById('confBar');
+    const confPct   = document.getElementById('confPercent');
+    const confLabel = document.getElementById('confLabel');
+
+    function typeStep() {
+        const phrase = phrases[phraseIdx];
+        if (typing) {
+            typeEl.innerText = phrase.substring(0, charIdx + 1);
+            charIdx++;
+            if (charIdx === phrase.length) {
+                typing = false;
+                // Show analysis after pause
+                setTimeout(() => {
+                    result.classList.add('hidden');
+                    analysis.classList.remove('hidden');
+                    setTimeout(() => {
+                        analysis.classList.add('hidden');
+                        result.classList.remove('hidden');
+                        confBar.classList.add('animate');
+                        let pct = 0;
+                        const interval = setInterval(() => {
+                            pct = Math.min(pct + 3, 92);
+                            confPct.innerText = pct + '%';
+                            confLabel.innerText = pct + '%';
+                            if (pct >= 92) clearInterval(interval);
+                        }, 20);
+                    }, 1000);
+                    setTimeout(() => {
+                        result.classList.add('hidden');
+                        analysis.classList.add('hidden');
+                        confBar.classList.remove('animate');
+                        charIdx = phrase.length;
+                        typing = false;
+                        setTimeout(deleteStep, 2000);
+                    }, 4000);
+                }, 600);
+                return;
+            }
+            setTimeout(typeStep, 45);
+        }
+    }
+
+    function deleteStep() {
+        const phrase = phrases[phraseIdx];
+        if (charIdx > 0) {
+            typeEl.innerText = phrase.substring(0, charIdx - 1);
+            charIdx--;
+            setTimeout(deleteStep, 22);
+        } else {
+            phraseIdx = (phraseIdx + 1) % phrases.length;
+            typing = true;
+            setTimeout(typeStep, 400);
+        }
+    }
+
+    setTimeout(typeStep, 800);
+
+    /* ── Privacy toggle ── */
+    function switchPrivacy(mode) {
+        const named = document.getElementById('namedCard');
+        const anon  = document.getElementById('anonCard');
+        const note  = document.getElementById('privacyNote');
+        const nc    = document.getElementById('namedCheck');
+        const ac    = document.getElementById('anonCheck');
+
+        if (mode === 'anon') {
+            named.style.borderColor = '#334155';
+            named.style.background  = '#1e293b';
+            anon.style.borderColor  = '#129385';
+            anon.style.background   = '#0f2f2b';
+            nc.style.display = 'none';
+            ac.innerHTML     = '<i data-lucide="check" class="w-3 h-3 text-white"></i>';
+            ac.className     = 'ml-auto w-4 h-4 rounded-full bg-[#129385] flex items-center justify-center';
+            note.innerText   = 'Your identity is permanently removed from all records.';
+            note.style.color = '#5eead4';
+        } else {
+            named.style.borderColor = '#129385';
+            named.style.background  = '#1e3a38';
+            anon.style.borderColor  = '#334155';
+            anon.style.background   = '#0f172a';
+            nc.style.display = 'flex';
+            ac.innerHTML     = '';
+            ac.className     = 'ml-auto w-4 h-4 rounded-full border-2 border-slate-600';
+            note.innerText   = 'Named submissions help build accountability culture.';
+            note.style.color = '#64748b';
+        }
+        lucide.createIcons();
+    }
+
+    /* ── Smooth anchor scrolling ── */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+</script>
+</body>
+</html>

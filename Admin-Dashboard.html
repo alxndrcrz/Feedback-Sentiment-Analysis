@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Feedback Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+        body { background-color: #f0faf9; background-image: radial-gradient(#12938518 1px, transparent 1px); background-size: 28px 28px; }
+        .navbar { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #e2f4f2; position: sticky; top: 0; z-index: 40; }
+        .card { background: #fff; border: 1px solid #e2f4f2; border-radius: 20px; box-shadow: 0 4px 20px rgba(18,147,133,0.06); }
+        .nav-link { font-weight: 600; font-size: 0.875rem; color: #64748b; transition: color 0.2s; }
+        .nav-link:hover { color: #129385; }
+        .nav-link.active { color: #129385; border-bottom: 2px solid #129385; padding-bottom: 2px; font-weight: 800; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .badge-positive { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .badge-negative { background: #fff1f2; color: #dc2626; border: 1px solid #fecdd3; }
+        .badge-neutral  { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+        .sentiment-badge { padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+        .hero-gradient { background: linear-gradient(135deg, #129385 0%, #0a5951 50%, #0f172a 100%); }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        .animate-pulse { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .animate-spin { animation: spin 1s linear infinite; }
+
+        /* AI Insights */
+        .insights-card { background: linear-gradient(135deg,#f0fdfb 0%,#ffffff 100%); border: 1.5px solid #d1faf5; border-radius: 20px; }
+        .insight-typing::after { content:'|'; animation: pulse 1s infinite; color:#129385; }
+
+        /* Theme pill */
+        .theme-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; cursor: default; transition: transform 0.15s; }
+        .theme-pill:hover { transform: scale(1.04); }
+        .theme-pos  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .theme-neg  { background: #fff1f2; color: #dc2626; border: 1px solid #fecdd3; }
+        .theme-mix  { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
+        /* Supervisor score bar */
+        .sup-bar { height: 8px; border-radius: 999px; transition: width 0.8s ease; }
+
+        /* Acknowledge badge */
+        .ack-badge { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:2px 8px; border-radius:999px; font-size:0.68rem; font-weight:800; display:inline-flex; align-items:center; gap:3px; }
+
+        /* Onboarding */
+        .onboard-step { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f1f5f9; }
+        .onboard-step:last-child { border-bottom:none; }
+        .step-circle { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:900; flex-shrink:0; }
+        .step-done { background:#129385; color:white; }
+        .step-todo { background:#f1f5f9; color:#94a3b8; border:1.5px solid #e2e8f0; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="navbar flex items-center justify-between px-8 py-4">
+        <div class="flex items-center gap-2.5">
+            <div class="bg-[#129385] p-1.5 rounded-xl shadow-sm">
+                <i data-lucide="message-square" class="text-white w-5 h-5"></i>
+            </div>
+            <span class="font-black text-[#0f172a] text-lg tracking-tight">Feedback <span class="text-[#129385]">Sentiment </span> <span class="text-[#0f172a]">Analysis</span></span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="History(Admin).html" class="nav-link">Feedback History</a>
+            <a href="Sentiment.html" class="nav-link">Sentiment Summary</a>
+            <a href="Trends.html" class="nav-link">Trends</a>
+            <a href="Organization.html" class="nav-link">Organization</a>
+            <a href="Admin-Dashboard.html" class="nav-link active">Dashboard</a>
+            <a href="Profile.html" class="nav-link">Profile</a>
+            <button onclick="logout()" class="flex items-center gap-2 bg-red-50 text-red-600 border border-red-100 px-4 py-2 rounded-xl font-700 hover:bg-red-100 transition text-sm ml-2">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+<main class="max-w-7xl mx-auto py-8 px-6 space-y-7 fade-in">
+
+    <!-- Hero -->
+    <div class="hero-gradient rounded-2xl p-8 text-white flex items-center justify-between overflow-hidden relative">
+        <div class="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4"></div>
+        <div class="absolute right-20 bottom-0 w-40 h-40 bg-white/5 rounded-full translate-y-1/2"></div>
+        <div class="flex items-center gap-6 z-10">
+            <div class="w-20 h-20 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20 text-3xl font-black shadow-inner text-white" id="org-initial">O</div>
+            <div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 id="display-org-name" class="text-3xl font-black tracking-tight text-white italic">Loading...</h1>
+                    <span id="display-org-code" class="bg-white/15 border border-white/25 px-3 py-1 rounded-full text-[10px] font-800 tracking-widest uppercase text-white">ORG-CODE</span>
+                </div>
+                <p class="text-teal-200/80 mt-1.5 font-600 text-sm">System Intelligence & Sentiment Overview</p>
+            </div>
+        </div>
+        <div class="flex gap-4 z-10 shrink-0">
+            <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 text-center min-w-[110px]">
+                <p id="header-total-count" class="text-3xl font-black">0</p>
+                <p class="text-[10px] uppercase font-800 text-teal-200 mt-0.5">Total Feedback</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 text-center min-w-[110px]">
+                <p id="header-positive-rate" class="text-3xl font-black">0%</p>
+                <p class="text-[10px] uppercase font-800 text-teal-200 mt-0.5">Positive Rate</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div class="card p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div class="stat-icon bg-teal-50"><i data-lucide="file-text" class="text-[#129385] w-5 h-5"></i></div>
+                <i data-lucide="trending-up" class="text-teal-400 w-4 h-4"></i>
+            </div>
+            <p class="text-gray-500 font-600 text-sm">Total Feedback</p>
+            <h3 id="stat-total" class="text-3xl font-black text-[#0f172a] my-1">0</h3>
+        </div>
+        <div class="card p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div class="stat-icon bg-green-50"><i data-lucide="smile" class="text-green-600 w-5 h-5"></i></div>
+                <i data-lucide="trending-up" class="text-green-400 w-4 h-4"></i>
+            </div>
+            <p class="text-gray-500 font-600 text-sm">Positive</p>
+            <h3 id="stat-positive" class="text-3xl font-black text-[#0f172a] my-1">0</h3>
+        </div>
+        <div class="card p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div class="stat-icon bg-red-50"><i data-lucide="frown" class="text-red-500 w-5 h-5"></i></div>
+                <i data-lucide="trending-down" class="text-red-400 w-4 h-4"></i>
+            </div>
+            <p class="text-gray-500 font-600 text-sm">Negative</p>
+            <h3 id="stat-negative" class="text-3xl font-black text-[#0f172a] my-1">0</h3>
+        </div>
+        <div class="card p-6">
+            <div class="flex justify-between items-start mb-4">
+                <div class="stat-icon bg-slate-50"><i data-lucide="meh" class="text-slate-500 w-5 h-5"></i></div>
+            </div>
+            <p class="text-gray-500 font-600 text-sm">Neutral</p>
+            <h3 id="stat-neutral" class="text-3xl font-black text-[#0f172a] my-1">0</h3>
+        </div>
+    </div>
+
+    <!-- ── AI INSIGHTS ── -->
+    <div class="insights-card p-7">
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-[#129385] rounded-xl flex items-center justify-center">
+                    <i data-lucide="sparkles" class="text-white w-4 h-4"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-black text-[#0f172a]">AI Executive Summary</h2>
+                    <p class="text-xs text-gray-400 font-600">Powered by Google Gemini 2.0 Flash</p>
+                </div>
+            </div>
+            <button onclick="loadInsights(true)" id="btn-refresh-insights"
+                class="flex items-center gap-2 text-[#129385] text-sm font-800 bg-teal-50 border border-teal-100 px-4 py-2 rounded-xl hover:bg-teal-100 transition">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Regenerate
+            </button>
+        </div>
+        <div id="insights-body">
+            <div class="flex items-center gap-3 text-gray-400 font-600 text-sm py-4">
+                <div class="w-5 h-5 border-2 border-[#129385] border-t-transparent rounded-full animate-spin"></div>
+                Gemini is analyzing your feedback data...
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2-COL: Trend Chart + Keyword Themes ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Trend Chart (2/3) -->
+        <div class="card p-7 lg:col-span-2">
+            <div class="flex justify-between items-center mb-5">
+                <div>
+                    <h2 class="text-lg font-black text-[#0f172a]">Sentiment Trends</h2>
+                    <p class="text-xs text-gray-400 font-600 mt-0.5">Last 7 days</p>
+                </div>
+                <div class="flex gap-4 text-xs font-800 uppercase tracking-wider">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-green-500 inline-block"></span>Positive</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-400 inline-block"></span>Neutral</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span>Negative</span>
+                </div>
+            </div>
+            <div class="relative h-[240px]">
+                <canvas id="trendChart"></canvas>
+                <div id="no-trend-data" class="absolute inset-0 hidden flex-col items-center justify-center bg-white/80">
+                    <i data-lucide="bar-chart-2" class="w-7 h-7 text-gray-300 mb-2"></i>
+                    <p class="text-gray-400 font-700 text-sm">No trend data yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyword Themes (1/3) -->
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-black text-[#0f172a]">Top Themes</h2>
+                <i data-lucide="tag" class="w-4 h-4 text-gray-300"></i>
+            </div>
+            <div id="themes-body">
+                <div class="flex items-center gap-2 text-gray-400 text-xs font-600 py-2">
+                    <div class="w-4 h-4 border-2 border-[#129385] border-t-transparent rounded-full animate-spin"></div>
+                    Loading themes...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Supervisor Scores ── -->
+    <div class="card p-7">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-lg font-black text-[#0f172a]">Supervisor Sentiment Scores</h2>
+                <p class="text-xs text-gray-400 font-600 mt-0.5">Ranked by feedback sentiment directed at each supervisor</p>
+            </div>
+            <span class="text-xs font-700 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">Last 30 days</span>
+        </div>
+        <div id="supervisor-scores-body">
+            <div class="flex items-center gap-2 text-gray-400 text-xs font-600 py-2">
+                <div class="w-4 h-4 border-2 border-[#129385] border-t-transparent rounded-full animate-spin"></div>
+                Loading scores...
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Recent Feedback ── -->
+    <div class="card overflow-hidden">
+        <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-black text-[#0f172a]">Recent Feedback</h2>
+                <p class="text-xs text-gray-400 font-600 mt-0.5">Latest submissions — click Acknowledge to act on an entry</p>
+            </div>
+            <a href="History(Admin).html" class="text-[#129385] text-sm font-800 flex items-center gap-1 hover:underline">
+                View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+        <div id="recent-feedback-list">
+            <div class="p-10 text-center text-gray-400 font-600">
+                <i data-lucide="loader" class="w-6 h-6 text-gray-300 mx-auto mb-3 animate-spin"></i>
+                Loading recent submissions...
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Onboarding Checklist (shown only when 0 data) ── -->
+    <div id="onboarding-card" class="hidden card p-7 border-2 border-dashed border-teal-200">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 bg-teal-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="rocket" class="text-[#129385] w-4 h-4"></i>
+            </div>
+            <div>
+                <h2 class="text-lg font-black text-[#0f172a]">Getting Started</h2>
+                <p class="text-xs text-gray-400 font-600">Complete these steps to set up your organization</p>
+            </div>
+        </div>
+        <div id="onboard-steps"></div>
+    </div>
+
+</main>
+
+<!-- Acknowledge Modal -->
+<div id="ack-modal" class="hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-teal-100">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center">
+                <i data-lucide="check-circle" class="text-[#129385] w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-[#0f172a]">Acknowledge Feedback</h3>
+                <p class="text-xs text-gray-400 font-600">Let the employee know action has been taken</p>
+            </div>
+        </div>
+        <p id="ack-preview" class="text-gray-600 text-sm font-500 bg-gray-50 rounded-xl p-4 mb-4 italic leading-relaxed"></p>
+        <div class="mb-5">
+            <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Action Note (optional)</label>
+            <textarea id="ack-note" rows="3" maxlength="300"
+                class="w-full p-3 rounded-xl border-1.5 border-gray-200 text-sm font-600 outline-none resize-none focus:border-[#129385] focus:ring-2 focus:ring-teal-100 transition"
+                placeholder="e.g. We have scheduled a team meeting to address this concern..."></textarea>
+            <p class="text-xs text-gray-400 font-600 mt-1 text-right"><span id="ack-char">0</span>/300</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="closeAckModal()" class="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 font-800 text-sm hover:bg-gray-50 transition">Cancel</button>
+            <button onclick="submitAcknowledge()" id="btn-ack-submit"
+                class="flex-1 py-3 rounded-xl bg-[#129385] text-white font-800 text-sm hover:bg-[#0d6e63] transition shadow-sm flex items-center justify-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i> Acknowledge
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-[999] px-5 py-3.5 rounded-2xl font-700 text-sm flex items-center gap-3 shadow-xl transform translate-y-20 opacity-0 transition-all duration-500">
+    <i id="toast-icon" data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
+    <span id="toast-msg"></span>
+</div>
+
+<script>
+lucide.createIcons();
+
+let orgCode = '';
+let ackFeedbackId = null;
+
+window.onload = async () => {
+    const user    = JSON.parse(localStorage.getItem('user_data'));
+    const session = JSON.parse(localStorage.getItem('supabase_session'));
+    if (!session || !user || user.role.toLowerCase() !== 'admin') {
+        window.location.href = 'LogIn.html'; return;
+    }
+    orgCode = user.org_code;
+    const orgName = user.org_name || 'Your Organization';
+    document.getElementById('display-org-name').innerText = orgName;
+    document.getElementById('display-org-code').innerText = orgCode || '—';
+    document.getElementById('org-initial').innerText = orgName.charAt(0).toUpperCase();
+
+    // Load all sections in parallel
+    await loadDashboardData();
+    loadInsights();
+    loadThemes();
+    loadSupervisorScores();
+};
+
+// ── Dashboard core data ────────────────────────────────────────────────────
+async function loadDashboardData() {
+    try {
+        const r = await fetch(`http://127.0.0.1:8000/api/admin/dashboard-all?org_code=${orgCode}`);
+        const d = await r.json();
+        if (r.ok) {
+            updateStats(d.stats);
+            renderTrendChart(d.trends);
+            renderRecentFeedback(d.recent);
+            checkOnboarding(d.stats);
+        } else { showEmptyState(); }
+    } catch { showEmptyState(); }
+}
+
+function checkOnboarding(stats) {
+    if (stats?.total > 0) return; // Has data — no need for onboarding
+    const card  = document.getElementById('onboarding-card');
+    const steps = document.getElementById('onboard-steps');
+    card.classList.remove('hidden');
+    const user = JSON.parse(localStorage.getItem('user_data'));
+    const checks = [
+        { label: 'Organization created',        done: true },
+        { label: 'Add at least one department',  done: false, link: 'Organization.html' },
+        { label: 'Add at least one category',    done: false, link: 'Organization.html' },
+        { label: 'Add supervisors',              done: false, link: 'Organization.html' },
+        { label: 'Share org code with your team',done: false,
+          extra: `<span class="font-mono text-[#129385] font-900">${user?.org_code || ''}</span>` },
+    ];
+    steps.innerHTML = checks.map((c,i) => `
+        <div class="onboard-step">
+            <div class="step-circle ${c.done ? 'step-done' : 'step-todo'}">
+                ${c.done ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>' : i+1}
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-700 text-[#0f172a]">${c.label} ${c.extra || ''}</p>
+            </div>
+            ${c.link ? `<a href="${c.link}" class="text-[#129385] text-xs font-800 hover:underline flex items-center gap-1">Go <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>` : ''}
+        </div>`).join('');
+}
+
+function updateStats(s) {
+    if (!s) return;
+    const total = s.total||0, pos = s.positive||0, neg = s.negative||0, neu = s.neutral||0;
+    document.getElementById('stat-total').innerText    = total;
+    document.getElementById('stat-positive').innerText = pos;
+    document.getElementById('stat-negative').innerText = neg;
+    document.getElementById('stat-neutral').innerText  = neu;
+    document.getElementById('header-total-count').innerText  = total;
+    document.getElementById('header-positive-rate').innerText = total > 0 ? `${Math.round(pos/total*100)}%` : '0%';
+}
+
+function renderTrendChart(t) {
+    if (!t?.labels?.length) {
+        document.getElementById('no-trend-data').classList.remove('hidden');
+        document.getElementById('no-trend-data').classList.add('flex');
+        return;
+    }
+    new Chart(document.getElementById('trendChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: t.labels,
+            datasets: [
+                { label:'Positive', data:t.positive, backgroundColor:'#22c55e', borderRadius:4 },
+                { label:'Neutral',  data:t.neutral,  backgroundColor:'#94a3b8', borderRadius:4 },
+                { label:'Negative', data:t.negative, backgroundColor:'#ef4444', borderRadius:4 }
+            ]
+        },
+        options: {
+            responsive:true, maintainAspectRatio:false,
+            scales: {
+                x:{ stacked:true, grid:{ display:false } },
+                y:{ stacked:true, beginAtZero:true, ticks:{ stepSize:1 } }
+            },
+            plugins:{ legend:{ display:false } }
+        }
+    });
+}
+
+// ── AI Insights ───────────────────────────────────────────────────────────
+async function loadInsights(force) {
+    const body = document.getElementById('insights-body');
+    const btn  = document.getElementById('btn-refresh-insights');
+    body.innerHTML = `<div class="flex items-center gap-3 text-gray-400 font-600 text-sm py-2">
+        <div class="w-5 h-5 border-2 border-[#129385] border-t-transparent rounded-full animate-spin"></div>
+        Gemini is analyzing your feedback data...
+    </div>`;
+    btn.disabled = true;
+
+    try {
+        const r = await fetch(`http://127.0.0.1:8000/api/admin/ai-insights?org_code=${orgCode}&days=30`);
+        const d = await r.json();
+        if (r.ok && d.insights) {
+            body.innerHTML = `
+                <p class="text-gray-700 text-sm leading-relaxed font-500 mb-4">${d.insights}</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Generated by</span>
+                    <span class="text-[10px] font-800 text-[#129385] bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-full">${d.engine === 'Gemini' ? '✦ Gemini 2.0 Flash' : 'Statistical fallback'}</span>
+                    <span class="text-[10px] text-gray-400 font-600 ml-auto">Based on last 30 days · ${d.stats?.total||0} entries</span>
+                </div>`;
+        } else {
+            body.innerHTML = `<p class="text-gray-400 text-sm font-600">Not enough feedback data yet to generate insights.</p>`;
+        }
+    } catch {
+        body.innerHTML = `<p class="text-gray-400 text-sm font-600">Could not load insights. Is the backend running?</p>`;
+    } finally {
+        btn.disabled = false;
+        lucide.createIcons();
+    }
+}
+
+// ── Keyword Themes ────────────────────────────────────────────────────────
+async function loadThemes() {
+    const body = document.getElementById('themes-body');
+    try {
+        const r = await fetch(`http://127.0.0.1:8000/api/admin/keyword-themes?org_code=${orgCode}&days=30`);
+        const d = await r.json();
+        if (r.ok && d.themes?.length) {
+            const colorMap = { Positive:'theme-pos', Negative:'theme-neg', Mixed:'theme-mix' };
+            body.innerHTML = `<div class="flex flex-wrap gap-2">` +
+                d.themes.map(t => `
+                    <div class="${colorMap[t.sentiment]||'theme-mix'} theme-pill" title="${t.example || ''}">
+                        <span>${t.theme}</span>
+                        <span class="opacity-60 text-[10px]">×${t.count}</span>
+                    </div>`).join('') +
+                `</div><p class="text-[10px] text-gray-400 font-600 mt-3">Hover a theme to see an example</p>`;
+        } else {
+            body.innerHTML = `<p class="text-gray-400 text-xs font-600 py-2">Not enough data for theme extraction.</p>`;
+        }
+    } catch {
+        body.innerHTML = `<p class="text-gray-400 text-xs font-600 py-2">Could not load themes.</p>`;
+    }
+}
+
+// ── Supervisor Scores ─────────────────────────────────────────────────────
+async function loadSupervisorScores() {
+    const body = document.getElementById('supervisor-scores-body');
+    try {
+        const r = await fetch(`http://127.0.0.1:8000/api/admin/supervisor-scores?org_code=${orgCode}&days=30`);
+        const d = await r.json();
+        if (r.ok && d.supervisors?.length) {
+            const statusColor = { good:'text-green-600 bg-green-50 border-green-100', warning:'text-orange-600 bg-orange-50 border-orange-100', critical:'text-red-600 bg-red-50 border-red-100' };
+            const statusLabel = { good:'Good', warning:'Review', critical:'Critical' };
+            const barColor    = { good:'#22c55e', warning:'#f97316', critical:'#ef4444' };
+            body.innerHTML = d.supervisors.map(s => {
+                const pct = Math.round(((s.score + 1) / 2) * 100);
+                return `
+                <div class="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
+                    <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                        <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="font-800 text-[#0f172a] text-sm truncate">${s.supervisor}</p>
+                            <span class="text-[10px] font-700 text-gray-400 shrink-0">${s.department}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="sup-bar h-full rounded-full" style="width:${pct}%;background:${barColor[s.status]||'#94a3b8'}"></div>
+                            </div>
+                            <span class="text-xs font-900 w-10 text-right" style="color:${barColor[s.status]}">${s.score > 0 ? '+' : ''}${s.score}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-400 font-600 mt-0.5">${s.total} entries · ${s.positive}↑ ${s.negative}↓</p>
+                    </div>
+                    <span class="text-[10px] font-800 px-2.5 py-1 rounded-full border shrink-0 ${statusColor[s.status]}">${statusLabel[s.status]}</span>
+                </div>`; }).join('');
+            lucide.createIcons();
+        } else {
+            body.innerHTML = `<p class="text-gray-400 text-sm font-600 py-4 text-center">No supervisor feedback data yet.</p>`;
+        }
+    } catch {
+        body.innerHTML = `<p class="text-gray-400 text-sm font-600 py-2">Could not load scores.</p>`;
+    }
+}
+
+// ── Recent Feedback ───────────────────────────────────────────────────────
+function renderRecentFeedback(items) {
+    const list = document.getElementById('recent-feedback-list');
+    if (!items?.length) { showEmptyState(); return; }
+    list.innerHTML = items.map(item => {
+        const cls  = item.sentiment === 'Positive' ? 'badge-positive' : item.sentiment === 'Negative' ? 'badge-negative' : 'badge-neutral';
+        const icon = item.sentiment === 'Positive' ? 'smile' : item.sentiment === 'Negative' ? 'frown' : 'meh';
+        const isAck = item.acknowledged;
+        return `
+        <div class="p-6 hover:bg-gray-50/60 transition border-b border-gray-50 last:border-0">
+            <div class="flex justify-between items-start mb-3 flex-wrap gap-2">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="sentiment-badge ${cls}">
+                        <i data-lucide="${icon}" class="w-3 h-3"></i> ${item.sentiment}
+                    </span>
+                    ${isAck ? `<span class="ack-badge"><i data-lucide="check-circle" class="w-3 h-3"></i> Acknowledged</span>` : ''}
+                    <span class="text-xs text-gray-400 font-600">${item.date}</span>
+                </div>
+                ${!isAck ? `
+                <button onclick="openAckModal(${item.id || 0}, '${(item.text||'').replace(/'/g,"\\'")}' )"
+                    class="flex items-center gap-1.5 text-[#129385] text-xs font-800 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-xl hover:bg-teal-100 transition">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Acknowledge
+                </button>` : `
+                <span class="text-xs text-gray-400 font-600 italic">${item.admin_note ? '"' + item.admin_note + '"' : 'Action taken'}</span>`}
+            </div>
+            <p class="text-gray-700 text-sm leading-relaxed mb-4 font-500">"${item.text}"</p>
+            <div class="flex flex-wrap gap-2 items-center">
+                <span class="inline-flex items-center gap-1 text-[10px] font-800 uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
+                    <i data-lucide="folder" class="w-3 h-3"></i> ${item.category}
+                </span>
+                <span class="inline-flex items-center gap-1 text-[10px] font-800 uppercase tracking-wider text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-lg">
+                    <i data-lucide="building" class="w-3 h-3"></i> ${item.department}
+                </span>
+                <span class="inline-flex items-center gap-1 text-[10px] font-800 uppercase tracking-wider text-purple-600 bg-purple-50 border border-purple-100 px-2.5 py-1 rounded-lg">
+                    <i data-lucide="user" class="w-3 h-3"></i> ${item.supervisor}
+                </span>
+                <span class="ml-auto text-[10px] font-800 text-gray-300 uppercase tracking-widest">By: ${item.user_name}</span>
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+// ── Acknowledge Modal ─────────────────────────────────────────────────────
+function openAckModal(id, text) {
+    ackFeedbackId = id;
+    document.getElementById('ack-preview').innerText = text;
+    document.getElementById('ack-note').value = '';
+    document.getElementById('ack-char').innerText = '0';
+    document.getElementById('ack-modal').classList.remove('hidden');
+}
+function closeAckModal() {
+    ackFeedbackId = null;
+    document.getElementById('ack-modal').classList.add('hidden');
+}
+document.getElementById('ack-note').addEventListener('input', function() {
+    document.getElementById('ack-char').innerText = this.value.length;
+});
+
+async function submitAcknowledge() {
+    if (!ackFeedbackId) return;
+    const note = document.getElementById('ack-note').value.trim();
+    const btn  = document.getElementById('btn-ack-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...';
+
+    try {
+        const session = JSON.parse(localStorage.getItem('supabase_session'));
+        const r = await fetch('http://127.0.0.1:8000/api/admin/acknowledge', {
+            method:  'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session?.access_token}` },
+            body:    JSON.stringify({ feedback_id: ackFeedbackId, note })
+        });
+        if (r.ok) {
+            closeAckModal();
+            showToast('Feedback acknowledged successfully.', 'success');
+            await loadDashboardData();
+        } else {
+            showToast('Failed to acknowledge. Try again.', 'error');
+        }
+    } catch {
+        showToast('Connection error.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> Acknowledge';
+        lucide.createIcons();
+    }
+}
+
+function showEmptyState() {
+    document.getElementById('no-trend-data').classList.remove('hidden');
+    document.getElementById('no-trend-data').classList.add('flex');
+    document.getElementById('recent-feedback-list').innerHTML = `
+        <div class="p-12 text-center text-gray-400 font-600">
+            <i data-lucide="inbox" class="w-8 h-8 text-gray-300 mx-auto mb-3"></i>
+            <p class="font-700 text-gray-500">No feedback submitted yet</p>
+            <p class="text-xs mt-1 text-gray-400">Share your org code with your team to get started</p>
+        </div>`;
+    lucide.createIcons();
+}
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').innerText = msg;
+    t.className = `fixed bottom-6 right-6 z-[999] px-5 py-3.5 rounded-2xl font-700 text-sm flex items-center gap-3 shadow-xl transition-all duration-500 ${type === 'success' ? 'bg-[#129385] text-white' : 'bg-red-500 text-white'}`;
+    document.getElementById('toast-icon').setAttribute('data-lucide', type === 'success' ? 'check-circle' : 'alert-circle');
+    lucide.createIcons();
+    setTimeout(() => {
+        t.className = t.className.replace('translate-y-0 opacity-100','') + ' translate-y-20 opacity-0';
+    }, 3500);
+}
+
+function logout() { localStorage.clear(); window.location.href = 'LogIn.html'; }
+</script>
+</body>
+</html>

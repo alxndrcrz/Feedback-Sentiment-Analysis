@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback History | FeedbackSense Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+        body { background: #f0faf9; background-image: radial-gradient(#12938515 1px, transparent 1px); background-size: 28px 28px; }
+        .navbar { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #e2f4f2; position: sticky; top: 0; z-index: 40; }
+        .nav-link { font-weight: 600; font-size: 0.875rem; color: #64748b; transition: color 0.2s; }
+        .nav-link:hover { color: #129385; }
+        .nav-link.active { color: #129385; border-bottom: 2px solid #129385; padding-bottom: 2px; font-weight: 800; }
+        .card { background: #fff; border: 1px solid #e2f4f2; border-radius: 20px; box-shadow: 0 4px 20px rgba(18,147,133,0.06); }
+
+        .filter-panel { background: #fff; border: 1px solid #e2f4f2; border-radius: 16px; padding: 20px 24px; }
+        .filter-select { width:100%; padding:10px 36px 10px 14px; border-radius:11px; border:1.5px solid #e5e7eb; background:#f9fffe; color:#0f172a; font-size:0.82rem; font-weight:700; appearance:none; outline:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; transition:border-color 0.2s; }
+        .filter-select:focus { border-color:#129385; box-shadow:0 0 0 3px rgba(18,147,133,0.1); }
+        .date-input { width:100%; padding:10px 14px; border-radius:11px; border:1.5px solid #e5e7eb; background:#f9fffe; color:#0f172a; font-size:0.82rem; font-weight:700; outline:none; transition:border-color 0.2s; }
+        .date-input:focus { border-color:#129385; box-shadow:0 0 0 3px rgba(18,147,133,0.1); }
+        .search-input { padding:11px 16px 11px 42px; border-radius:13px; border:1.5px solid #e5e7eb; background:#f9fffe; color:#0f172a; font-size:0.875rem; font-weight:600; outline:none; width:100%; transition:all 0.2s; }
+        .search-input:focus { border-color:#129385; box-shadow:0 0 0 3px rgba(18,147,133,0.1); background:#f0fdfb; }
+        .search-input::placeholder { color:#9ca3af; font-weight:500; }
+
+        .table-header th { font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:#94a3b8; padding:12px 16px; background:#f8fafc; }
+        .table-header th:first-child { border-radius:12px 0 0 12px; }
+        .table-header th:last-child  { border-radius:0 12px 12px 0; }
+        .table-row td { padding:14px 16px; border-bottom:1px solid #f1f5f9; font-size:0.875rem; vertical-align:middle; }
+        .table-row:last-child td { border-bottom:none; }
+        .table-row:hover td { background:#fafffe; }
+
+        .badge { display:inline-flex; align-items:center; gap:4px; padding:4px 11px; border-radius:999px; font-size:0.72rem; font-weight:800; }
+        .badge-positive { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+        .badge-negative { background:#fff1f2; color:#dc2626; border:1px solid #fecdd3; }
+        .badge-neutral  { background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; }
+        .badge-ack      { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+
+        .chip { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:7px; font-size:0.68rem; font-weight:800; text-transform:uppercase; }
+        .chip-blue   { background:#eff6ff; color:#2563eb; }
+        .chip-orange { background:#fff7ed; color:#c2410c; }
+
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(8px); z-index:50; align-items:center; justify-content:center; padding:16px; }
+        .modal-overlay.active { display:flex; }
+
+        .skeleton { background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .animate-spin { animation:spin 1s linear infinite; }
+
+        .page-btn { width:34px; height:34px; border-radius:9px; border:1.5px solid #e5e7eb; background:white; color:#64748b; font-weight:700; font-size:0.8rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; }
+        .page-btn:hover:not(:disabled) { border-color:#129385; color:#129385; }
+        .page-btn.active  { background:#129385; border-color:#129385; color:white; }
+        .page-btn:disabled { opacity:0.35; cursor:not-allowed; }
+
+        .text-clamp { display:-webkit-box; line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+        .toast { position:fixed; bottom:24px; right:24px; z-index:999; padding:13px 18px; border-radius:13px; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:8px; box-shadow:0 8px 28px rgba(0,0,0,0.14); transform:translateY(80px); opacity:0; transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .toast.show    { transform:translateY(0); opacity:1; }
+        .toast-success { background:#129385; color:white; }
+        .toast-error   { background:#ef4444; color:white; }
+
+        .btn-filter  { display:flex; align-items:center; gap:6px; padding:9px 16px; border-radius:11px; border:1.5px solid #e5e7eb; background:white; color:#64748b; font-weight:700; font-size:0.82rem; cursor:pointer; transition:all 0.2s; }
+        .btn-filter:hover,.btn-filter.active { border-color:#129385; color:#129385; background:#f0fdfb; }
+        .btn-export  { display:flex; align-items:center; gap:6px; padding:9px 16px; border-radius:11px; background:linear-gradient(135deg,#129385,#0d6e63); color:white; font-weight:700; font-size:0.82rem; cursor:pointer; border:none; transition:all 0.2s; box-shadow:0 3px 10px rgba(18,147,133,0.25); }
+        .btn-export:hover { transform:translateY(-1px); box-shadow:0 5px 14px rgba(18,147,133,0.35); }
+        .btn-ack { display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:8px; background:#f0fdfb; border:1px solid #d1faf5; color:#129385; font-size:0.72rem; font-weight:800; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+        .btn-ack:hover { background:#d1faf5; }
+
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+<nav class="navbar flex items-center justify-between px-8 py-4">
+    <div class="flex items-center gap-2.5">
+        <div class="bg-[#129385] p-1.5 rounded-xl shadow-sm">
+            <i data-lucide="message-square" class="text-white w-5 h-5"></i>
+        </div>
+        <span class="font-black text-[#0f172a] text-lg tracking-tight">Feedback <span class="text-[#129385]">Sentiment </span><span class="text-[#0f172a]">Analysis</span></span>
+    </div>
+    <div class="flex items-center gap-6">
+        <a href="Profile.html"         class="nav-link">Profile</a>
+        <a href="History(Admin).html"  class="nav-link active">Feedback History</a>
+        <a href="Sentiment.html"       class="nav-link">Sentiment Summary</a>
+        <a href="Trends.html"          class="nav-link">Trends</a>
+        <a href="Organization.html"    class="nav-link">Organization</a>
+        <a href="Admin-Dashboard.html" class="nav-link">Dashboard</a>
+        <button onclick="logout()" class="flex items-center gap-2 bg-red-50 text-red-600 border border-red-100 px-4 py-2 rounded-xl font-700 hover:bg-red-100 transition text-sm ml-2">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+        </button>
+    </div>
+</nav>
+
+<main class="max-w-7xl mx-auto py-10 px-6 space-y-6 fade-in">
+
+    <div class="flex items-end justify-between">
+        <div>
+            <h1 class="text-4xl font-black text-[#0f172a] tracking-tight">Feedback History</h1>
+            <p class="text-gray-500 font-500 mt-1">View, filter, and acknowledge all submitted feedback entries.</p>
+        </div>
+        <button class="btn-export" onclick="exportCSV()">
+            <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+        </button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="file-text" class="text-[#129385] w-4 h-4"></i></div>
+            <div><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Total</p><p id="hs-total" class="text-xl font-black text-[#0f172a]">0</p></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="smile" class="text-green-600 w-4 h-4"></i></div>
+            <div><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Positive</p><p id="hs-pos" class="text-xl font-black text-green-600">0</p></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="frown" class="text-red-500 w-4 h-4"></i></div>
+            <div><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Negative</p><p id="hs-neg" class="text-xl font-black text-red-500">0</p></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center shrink-0"><i data-lucide="check-circle" class="text-[#129385] w-4 h-4"></i></div>
+            <div><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider">Acknowledged</p><p id="hs-ack" class="text-xl font-black text-[#129385]">0</p></div>
+        </div>
+    </div>
+
+    <!-- Search + Filter -->
+    <div class="filter-panel">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search feedback, users, categories..." oninput="applyAndRender()">
+            </div>
+            <button id="filterToggleBtn" class="btn-filter" onclick="toggleFilters()">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Filters
+                <span id="activeFilterCount" class="hidden bg-[#129385] text-white text-[10px] font-900 w-5 h-5 rounded-full flex items-center justify-center">0</span>
+            </button>
+        </div>
+        <div id="filterPanel" class="hidden">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-1.5">Sentiment</label>
+                    <select id="fSentiment" class="filter-select" onchange="applyAndRender()">
+                        <option value="">All Sentiments</option>
+                        <option value="Positive">Positive</option>
+                        <option value="Neutral">Neutral</option>
+                        <option value="Negative">Negative</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-1.5">Status</label>
+                    <select id="fAck" class="filter-select" onchange="applyAndRender()">
+                        <option value="">All Status</option>
+                        <option value="acknowledged">Acknowledged</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-1.5">Category</label>
+                    <select id="fCategory" class="filter-select" onchange="applyAndRender()"><option value="">All Categories</option></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-1.5">Department</label>
+                    <select id="fDepartment" class="filter-select" onchange="applyAndRender()"><option value="">All Departments</option></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-1.5">Date From</label>
+                    <input type="date" id="fDateFrom" class="date-input" onchange="applyAndRender()">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-1.5">Date To</label>
+                    <input type="date" id="fDateTo" class="date-input" onchange="applyAndRender()">
+                </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                <p id="resultsLabel" class="text-sm text-gray-500 font-600"></p>
+                <button onclick="clearFilters()" class="text-xs font-800 text-[#129385] hover:underline flex items-center gap-1">
+                    <i data-lucide="x" class="w-3 h-3"></i> Clear all
+                </button>
+            </div>
+        </div>
+        <p id="resultsLabelInline" class="text-sm text-gray-500 font-600 mt-1"></p>
+    </div>
+
+    <!-- Table -->
+    <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="table-header">
+                        <th class="text-left">Date</th>
+                        <th class="text-left">User</th>
+                        <th class="text-left">Category</th>
+                        <th class="text-left">Dept</th>
+                        <th class="text-left">Feedback Preview</th>
+                        <th class="text-left">Sentiment</th>
+                        <th class="text-left">Status</th>
+                        <th class="text-left"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="8" class="p-10 text-center text-gray-400 font-600">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-6 h-6 border-2 border-[#129385] border-t-transparent rounded-full animate-spin"></div>
+                            Loading feedback data...
+                        </div>
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="pagination" class="flex items-center justify-center gap-2 pb-4"></div>
+</main>
+
+<!-- Detail + Acknowledge Modal -->
+<div id="detailModal" class="modal-overlay">
+    <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl border border-teal-100 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between mb-5">
+            <div>
+                <div id="modal-badge" class="mb-2"></div>
+                <p id="modal-date" class="text-xs text-gray-400 font-600"></p>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <p id="modal-text" class="text-gray-700 leading-relaxed text-sm font-500 mb-5 bg-gray-50 p-4 rounded-xl border border-gray-100"></p>
+
+        <div class="grid grid-cols-2 gap-3 text-sm mb-5" id="modal-meta"></div>
+
+        <!-- Admin note display (if already acknowledged) -->
+        <div id="modal-ack-display" class="hidden bg-teal-50 border border-teal-100 rounded-xl p-4 mb-5">
+            <p class="text-[10px] font-800 text-[#129385] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Acknowledged
+            </p>
+            <p id="modal-ack-note" class="text-sm text-[#0d6e63] font-600"></p>
+        </div>
+
+        <!-- Follow-up display with sentiment -->
+        <div id="modal-followup-display" class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
+            <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <p class="text-[10px] font-800 text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Employee Follow-up
+                </p>
+                <div id="modal-followup-sentiment" class="hidden"></div>
+            </div>
+            <p id="modal-followup-text" class="text-sm text-blue-800 font-600 mb-2"></p>
+            <p id="modal-followup-shift" class="hidden text-[10px] font-700 text-blue-500 flex items-center gap-1">
+                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                <span></span>
+            </p>
+        </div>
+
+        <!-- Acknowledge form (if not yet acknowledged) -->
+        <div id="modal-ack-form" class="hidden">
+            <div class="border-t border-gray-100 pt-5">
+                <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">
+                    Action Note <span class="normal-case text-gray-400 font-600 tracking-normal">— visible to the employee</span>
+                </label>
+                <textarea id="modal-ack-note-input" rows="3" maxlength="300"
+                    class="w-full p-3 rounded-xl border border-gray-200 text-sm font-600 outline-none resize-none focus:border-[#129385] focus:ring-2 focus:ring-teal-100 transition font-[Nunito]"
+                    placeholder="e.g. We have scheduled a team discussion to address this..."></textarea>
+                <div class="flex items-center justify-between mt-1 mb-4">
+                    <span class="text-xs text-gray-400 font-600">This note will be shown to the employee</span>
+                    <span id="modal-ack-char" class="text-xs text-gray-400 font-600">0/300</span>
+                </div>
+                <button onclick="submitAcknowledge()" id="btn-modal-ack"
+                    class="w-full py-3 bg-[#129385] text-white font-800 text-sm rounded-xl hover:bg-[#0d6e63] transition shadow-sm flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Acknowledged
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"><i id="toastIcon" data-lucide="check-circle" class="w-4 h-4 shrink-0"></i><span id="toastMsg"></span></div>
+
+<script>
+lucide.createIcons();
+
+let allData = [], filtered = [], user = null;
+let currentPage = 1;
+const PER_PAGE  = 10;
+let selectedItem = null;
+
+window.onload = async () => {
+    user = JSON.parse(localStorage.getItem('user_data'));
+    if (!user || user.role !== 'admin') { window.location.href = 'LogIn.html'; return; }
+    await loadData();
+};
+
+async function loadData() {
+    try {
+        const r = await fetch(`http://127.0.0.1:8000/api/admin/feedback-history?org_code=${user.org_code}`);
+        const d = await r.json();
+        if (r.ok) {
+            allData = d.feedback || [];
+            updateHeaderStats();
+            populateFilterOptions();
+            applyAndRender();
+        } else { showError(); }
+    } catch { showError(); }
+}
+
+function updateHeaderStats() {
+    const total = allData.length;
+    const pos   = allData.filter(f => f.sentiment === 'Positive').length;
+    const neg   = allData.filter(f => f.sentiment === 'Negative').length;
+    const ack   = allData.filter(f => f.acknowledged).length;
+    document.getElementById('hs-total').innerText = total;
+    document.getElementById('hs-pos').innerText   = pos;
+    document.getElementById('hs-neg').innerText   = neg;
+    document.getElementById('hs-ack').innerText   = ack;
+}
+
+function populateFilterOptions() {
+    const cats  = [...new Set(allData.map(f => f.category).filter(Boolean))];
+    const depts = [...new Set(allData.map(f => f.department).filter(Boolean))];
+    document.getElementById('fCategory').innerHTML  = '<option value="">All Categories</option>'  + cats.map(v  => `<option value="${v}">${v}</option>`).join('');
+    document.getElementById('fDepartment').innerHTML = '<option value="">All Departments</option>' + depts.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+function applyAndRender() {
+    const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+    const sent = document.getElementById('fSentiment').value;
+    const ack  = document.getElementById('fAck').value;
+    const cat  = document.getElementById('fCategory').value;
+    const dept = document.getElementById('fDepartment').value;
+    const from = document.getElementById('fDateFrom').value;
+    const to   = document.getElementById('fDateTo').value;
+
+    filtered = allData.filter(f => {
+        if (sent && f.sentiment !== sent) return false;
+        if (cat  && f.category  !== cat)  return false;
+        if (dept && f.department !== dept) return false;
+        if (ack  === 'acknowledged' && !f.acknowledged)  return false;
+        if (ack  === 'pending'      &&  f.acknowledged)  return false;
+        if (from && new Date(f.created_at) < new Date(from)) return false;
+        if (to   && new Date(f.created_at) > new Date(to + 'T23:59:59')) return false;
+        if (q) {
+            const hay = [f.feedback_text, f.user_name, f.category, f.department, f.supervisor].join(' ').toLowerCase();
+            if (!hay.includes(q)) return false;
+        }
+        return true;
+    });
+
+    const active = [sent, cat, dept, ack, from, to].filter(Boolean).length;
+    const badge  = document.getElementById('activeFilterCount');
+    if (active > 0) { badge.innerText = active; badge.classList.remove('hidden'); badge.classList.add('flex'); document.getElementById('filterToggleBtn').classList.add('active'); }
+    else            { badge.classList.add('hidden'); badge.classList.remove('flex'); document.getElementById('filterToggleBtn').classList.remove('active'); }
+
+    const lbl = `Showing <strong>${filtered.length}</strong> of <strong>${allData.length}</strong> entries`;
+    document.getElementById('resultsLabel').innerHTML       = lbl;
+    document.getElementById('resultsLabelInline').innerHTML = lbl;
+
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable() {
+    const body = document.getElementById('tableBody');
+    if (!filtered.length) {
+        body.innerHTML = `<tr><td colspan="8" class="p-14 text-center">
+            <div class="flex flex-col items-center gap-2">
+                <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="inbox" class="w-6 h-6 text-gray-300"></i>
+                </div>
+                <p class="text-gray-400 font-700 text-sm">No feedback matches your filters</p>
+            </div>
+        </td></tr>`;
+        lucide.createIcons();
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+
+    const start = (currentPage - 1) * PER_PAGE;
+    const page  = filtered.slice(start, start + PER_PAGE);
+
+    body.innerHTML = page.map(f => {
+        const badgeCls = { Positive:'badge-positive', Neutral:'badge-neutral', Negative:'badge-negative' }[f.sentiment] || 'badge-neutral';
+        const icon     = { Positive:'smile', Neutral:'meh', Negative:'frown' }[f.sentiment] || 'meh';
+        const isAck    = f.acknowledged;
+        const hasFollowup = f.followup_text;
+
+        return `<tr class="table-row" onclick="openModal(${JSON.stringify(f).replace(/"/g,'&quot;')})" style="cursor:pointer">
+            <td class="text-gray-500 font-600 text-xs whitespace-nowrap">${shortDate(f.created_at)}</td>
+            <td>
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full ${f.is_anonymous?'bg-gray-100':'bg-teal-50'} flex items-center justify-center shrink-0">
+                        <i data-lucide="user" class="w-3.5 h-3.5 ${f.is_anonymous?'text-gray-400':'text-[#129385]'}"></i>
+                    </div>
+                    <span class="font-700 text-[#0f172a] text-sm ${f.is_anonymous?'italic text-gray-400':''}">${f.user_name||'Anonymous'}</span>
+                </div>
+            </td>
+            <td><span class="chip chip-blue">${f.category||'—'}</span></td>
+            <td><span class="chip chip-orange">${f.department||'—'}</span></td>
+            <td class="max-w-[200px]"><p class="text-gray-600 text-sm font-500 text-clamp">${f.feedback_text||''}</p></td>
+            <td><span class="badge ${badgeCls}"><i data-lucide="${icon}" class="w-3 h-3"></i>${f.sentiment}</span></td>
+            <td>
+                <div class="flex flex-col gap-1">
+                    ${isAck
+                        ? `<span class="badge badge-ack"><i data-lucide="check-circle" class="w-3 h-3"></i>Done</span>`
+                        : `<span class="text-xs font-700 text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full">Pending</span>`}
+                    ${hasFollowup && f.followup_sentiment ? (() => {
+                        const fs   = f.followup_sentiment;
+                        const fCls = fs === 'Positive' ? 'text-green-700 bg-green-50 border-green-200'
+                                   : fs === 'Negative' ? 'text-red-600 bg-red-50 border-red-200'
+                                   : 'text-gray-500 bg-gray-50 border-gray-200';
+                        const fIcon = fs === 'Positive' ? 'smile' : fs === 'Negative' ? 'frown' : 'meh';
+                        return `<span class="inline-flex items-center gap-1 text-[10px] font-800 px-2 py-0.5 rounded-full border ${fCls}">
+                                    <i data-lucide="${fIcon}" class="w-3 h-3"></i> ${fs}
+                                </span>`;
+                    })() : ''}
+                </div>
+            </td>
+            <td onclick="event.stopPropagation()">
+                ${!isAck
+                    ? `<button onclick="openModal(${JSON.stringify(f).replace(/"/g,'&quot;')})" class="btn-ack">
+                           <i data-lucide="check" class="w-3 h-3"></i> Acknowledge
+                       </button>`
+                    : `<button onclick="openModal(${JSON.stringify(f).replace(/"/g,'&quot;')})" class="p-1.5 rounded-lg hover:bg-teal-50 text-gray-300 hover:text-[#129385] transition">
+                           <i data-lucide="eye" class="w-4 h-4"></i>
+                       </button>`}
+            </td>
+        </tr>`;
+    }).join('');
+
+    lucide.createIcons();
+    renderPagination();
+}
+
+function renderPagination() {
+    const pg    = document.getElementById('pagination');
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    if (total <= 1) { pg.innerHTML = ''; return; }
+    let html = `<button class="page-btn" onclick="goTo(${currentPage-1})" ${currentPage===1?'disabled':''}><i data-lucide="chevron-left" class="w-4 h-4"></i></button>`;
+    for (let i = 1; i <= total; i++) {
+        if (i===1 || i===total || Math.abs(i-currentPage)<=1) html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goTo(${i})">${i}</button>`;
+        else if (Math.abs(i-currentPage)===2) html += `<span class="text-gray-400 text-sm px-1">…</span>`;
+    }
+    html += `<button class="page-btn" onclick="goTo(${currentPage+1})" ${currentPage===total?'disabled':''}><i data-lucide="chevron-right" class="w-4 h-4"></i></button>`;
+    pg.innerHTML = html;
+    lucide.createIcons();
+}
+
+function goTo(p) {
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    if (p < 1 || p > total) return;
+    currentPage = p;
+    renderTable();
+    window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function toggleFilters() {
+    const panel = document.getElementById('filterPanel');
+    const label = document.getElementById('resultsLabelInline');
+    panel.classList.toggle('hidden');
+    label.classList.toggle('hidden', !panel.classList.contains('hidden'));
+}
+
+function clearFilters() {
+    ['fSentiment','fCategory','fDepartment','fAck'].forEach(id => document.getElementById(id).value = '');
+    ['fDateFrom','fDateTo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('searchInput').value = '';
+    applyAndRender();
+}
+
+// ── Detail Modal ────────────────────────────────────────────────────────────
+function openModal(f) {
+    selectedItem = f;
+    const badgeCls = { Positive:'badge-positive', Neutral:'badge-neutral', Negative:'badge-negative' }[f.sentiment] || 'badge-neutral';
+    const icon     = { Positive:'smile', Neutral:'meh', Negative:'frown' }[f.sentiment] || 'meh';
+
+    document.getElementById('modal-badge').innerHTML = `<span class="badge ${badgeCls}"><i data-lucide="${icon}" class="w-3.5 h-3.5"></i>${f.sentiment}</span>`;
+    document.getElementById('modal-date').innerText  = fullDate(f.created_at);
+    document.getElementById('modal-text').innerText  = f.feedback_text || '';
+    document.getElementById('modal-meta').innerHTML  = `
+        <div class="bg-gray-50 rounded-xl p-3"><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider mb-0.5">Submitted By</p><p class="font-800 text-[#0f172a] text-sm ${f.is_anonymous?'italic text-gray-400':''}">${f.user_name||'Anonymous'}</p></div>
+        <div class="bg-gray-50 rounded-xl p-3"><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider mb-0.5">Category</p><p class="font-800 text-[#0f172a] text-sm">${f.category||'—'}</p></div>
+        <div class="bg-gray-50 rounded-xl p-3"><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider mb-0.5">Department</p><p class="font-800 text-[#0f172a] text-sm">${f.department||'—'}</p></div>
+        <div class="bg-gray-50 rounded-xl p-3"><p class="text-[10px] font-800 text-gray-400 uppercase tracking-wider mb-0.5">Supervisor</p><p class="font-800 text-[#0f172a] text-sm">${f.supervisor||'—'}</p></div>`;
+
+    // Acknowledged section
+    const ackDisplay = document.getElementById('modal-ack-display');
+    const ackForm    = document.getElementById('modal-ack-form');
+    const ackNote    = document.getElementById('modal-ack-note');
+    if (f.acknowledged) {
+        ackDisplay.classList.remove('hidden');
+        ackNote.innerText = f.admin_note ? `"${f.admin_note}"` : 'Action has been taken on this feedback.';
+        ackForm.classList.add('hidden');
+    } else {
+        ackDisplay.classList.add('hidden');
+        ackForm.classList.remove('hidden');
+        document.getElementById('modal-ack-note-input').value = '';
+        document.getElementById('modal-ack-char').innerText = '0/300';
+    }
+
+    // Follow-up section with sentiment
+    const fuDisplay = document.getElementById('modal-followup-display');
+    const fuText    = document.getElementById('modal-followup-text');
+    const fuSent    = document.getElementById('modal-followup-sentiment');
+    const fuShift   = document.getElementById('modal-followup-shift');
+
+    if (f.followup_text) {
+        fuDisplay.classList.remove('hidden');
+        fuText.innerText = `"${f.followup_text}"`;
+
+        // Show follow-up sentiment badge
+        if (f.followup_sentiment) {
+            const fs    = f.followup_sentiment;
+            const fCls  = fs === 'Positive'
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : fs === 'Negative'
+                ? 'bg-red-50 text-red-600 border-red-200'
+                : 'bg-gray-50 text-gray-500 border-gray-200';
+            const fIcon = fs === 'Positive' ? 'smile' : fs === 'Negative' ? 'frown' : 'meh';
+            fuSent.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 text-[10px] font-800 px-2.5 py-1 rounded-full border ${fCls}">
+                    <i data-lucide="${fIcon}" class="w-3 h-3"></i> AI: ${fs}
+                </span>`;
+            fuSent.classList.remove('hidden');
+
+            // Show sentiment shift if it changed
+            if (f.sentiment !== fs) {
+                const arrow = f.sentiment === 'Negative' && fs === 'Positive'
+                    ? '✅ Issue appears resolved'
+                    : f.sentiment === 'Positive' && fs === 'Negative'
+                    ? '⚠️ New concern raised'
+                    : '→ Sentiment changed';
+                fuShift.innerText = `${arrow}: ${f.sentiment} → ${fs}`;
+                fuShift.classList.remove('hidden');
+            } else {
+                fuShift.innerText = `Sentiment unchanged: ${fs}`;
+                fuShift.classList.remove('hidden');
+            }
+        } else {
+            fuSent.classList.add('hidden');
+            fuShift.classList.add('hidden');
+        }
+    } else {
+        fuDisplay.classList.add('hidden');
+    }
+
+    document.getElementById('detailModal').classList.add('active');
+    lucide.createIcons();
+}
+
+function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
+document.getElementById('detailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.getElementById('modal-ack-note-input').addEventListener('input', function() {
+    document.getElementById('modal-ack-char').innerText = `${this.value.length}/300`;
+});
+
+async function submitAcknowledge() {
+    if (!selectedItem) return;
+    const note = document.getElementById('modal-ack-note-input').value.trim();
+    const btn  = document.getElementById('btn-modal-ack');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...';
+
+    try {
+        const session = JSON.parse(localStorage.getItem('supabase_session'));
+        const r = await fetch('http://127.0.0.1:8000/api/admin/acknowledge', {
+            method:  'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session?.access_token}` },
+            body:    JSON.stringify({ feedback_id: selectedItem.id, note })
+        });
+        if (r.ok) {
+            closeModal();
+            showToast('Feedback acknowledged.', 'success');
+            await loadData();
+        } else {
+            showToast('Failed to acknowledge.', 'error');
+        }
+    } catch {
+        showToast('Connection error.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Mark as Acknowledged';
+        lucide.createIcons();
+    }
+}
+
+function exportCSV() {
+    if (!filtered.length) { showToast('No data to export.','error'); return; }
+    const headers = ['Date','User','Category','Department','Supervisor','Sentiment','Status','Feedback','Admin Note','Employee Follow-up'];
+    const rows    = filtered.map(f => [
+        fullDate(f.created_at), f.user_name||'Anonymous',
+        f.category||'—', f.department||'—', f.supervisor||'—',
+        f.sentiment||'—',
+        f.acknowledged ? 'Acknowledged' : 'Pending',
+        `"${(f.feedback_text||'').replace(/"/g,'""')}"`,
+        `"${(f.admin_note||'').replace(/"/g,'""')}"`,
+        `"${(f.followup_text||'').replace(/"/g,'""')}"`,
+    ]);
+    const csv  = [headers,...rows].map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csv],{type:'text/csv'});
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `feedback-history-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('CSV exported!');
+}
+
+function shortDate(iso) { try { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } catch { return iso; } }
+function fullDate(iso)  { try { return new Date(iso).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch { return iso; } }
+function showError()    { document.getElementById('tableBody').innerHTML = `<tr><td colspan="8" class="p-14 text-center"><p class="text-gray-400 font-700 text-sm">Could not load data. Is the backend running?</p></td></tr>`; }
+function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').innerText = msg;
+    t.className = `toast show toast-${type}`;
+    document.getElementById('toastIcon').setAttribute('data-lucide', type==='success'?'check-circle':'alert-circle');
+    lucide.createIcons();
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+function logout() { localStorage.clear(); window.location.href = 'LogIn.html'; }
+</script>
+</body>
+</html>

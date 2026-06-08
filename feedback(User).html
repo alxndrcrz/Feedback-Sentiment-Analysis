@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback | Feedback Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+        body { background-color: #f0faf9; background-image: radial-gradient(#12938520 1px, transparent 1px); background-size: 28px 28px; }
+        .navbar { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #e2f4f2; position: sticky; top: 0; z-index: 40; }
+        .card { background: #fff; border: 1px solid #e2f4f2; border-radius: 20px; box-shadow: 0 4px 20px rgba(18,147,133,0.07); }
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid #e5e7eb;
+            background: #f9fffe;
+            color: #0f172a;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .input-field::placeholder { color: #9ca3af; font-weight: 500; }
+        .input-field:focus { border-color: #129385; background: #f0fdfb; box-shadow: 0 0 0 3px rgba(18, 147, 133, 0.1); }
+        .input-field:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #129385 0%, #0d6e63 100%);
+            color: white;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(18, 147, 133, 0.3);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(18, 147, 133, 0.4); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .nav-link { font-weight: 600; font-size: 0.875rem; color: #64748b; transition: color 0.2s; }
+        .nav-link:hover { color: #129385; }
+        .nav-link.active { color: #129385; border-bottom: 2px solid #129385; padding-bottom: 2px; font-weight: 800; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+
+        /* Toast notification */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 999;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            display: flex; align-items: center gap-10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { background: #129385; color: white; }
+        .toast-error { background: #ef4444; color: white; }
+
+        select.input-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="navbar flex items-center justify-between px-8 py-4">
+        <div class="flex items-center gap-2.5">
+            <div class="bg-[#129385] p-1.5 rounded-xl shadow-sm">
+                <i data-lucide="message-square" class="text-white w-5 h-5"></i>
+            </div>
+            <span class="font-black text-[#0f172a] text-lg tracking-tight">Feedback <span class="text-[#129385]">Sentiment </span> <span class="text-[#0f172a]">Analysis</span></span>
+        </div>
+        <div class="flex items-center gap-7">
+            <a href="feedback(User).html" class="nav-link active">Submit Feedback</a>
+            <a href="History(User).html" class="nav-link">My Feedback</a>
+            <a href="Profile.html" class="nav-link">Profile</a>
+            <button onclick="logout()" class="flex items-center gap-2 bg-red-50 text-red-600 border border-red-100 px-4 py-2 rounded-xl font-700 hover:bg-red-100 transition text-sm">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+                Logout
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto py-10 px-4 fade-in">
+
+        <!-- Page Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black text-[#0f172a] mb-2">Submit Your Feedback</h1>
+            <p class="text-gray-500 font-500">Share your thoughts honestly — our AI analyzes sentiment automatically.</p>
+        </div>
+
+        <!-- Org Info Banner -->
+        <div class="card p-5 mb-7 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div id="org-initials" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#129385] to-[#0d6e63] flex items-center justify-center text-white font-black text-lg shadow-sm">--</div>
+                <div>
+                    <p class="text-[10px] font-800 text-gray-400 uppercase tracking-widest mb-0.5">Submitting Feedback To</p>
+                    <h2 id="display-org-name" class="text-lg font-black text-[#1e293b]">Loading Organization...</h2>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full">
+                <i data-lucide="shield-check" class="text-[#129385] w-4 h-4"></i>
+                <span id="display-org-code" class="text-[#129385] font-800 text-xs tracking-wider uppercase">—</span>
+            </div>
+        </div>
+
+        <!-- Feedback Form -->
+        <div class="card p-8 md:p-10">
+            <form id="feedbackForm" novalidate class="space-y-6">
+
+                <!-- Category & Department -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Category *</label>
+                    <select id="category" required class="input-field">
+                        <option value="" disabled selected>Loading categories...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Department *</label>
+                    <select id="department" onchange="updateSupervisors()" required class="input-field">
+                        <option value="" disabled selected>Loading departments...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Supervisor *</label>
+                    <select id="supervisor" required disabled class="input-field">
+                        <option value="" disabled selected>Select a department first</option>
+                    </select>
+                </div>
+
+                <!-- Feedback Text -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Your Feedback <span class="text-red-500">*</span></label>
+                    <textarea id="feedbackText" maxlength="500" oninput="updateCharCount(this)" required rows="5"
+                        class="input-field resize-none"
+                        placeholder="Share your experience, thoughts, or suggestions honestly..."></textarea>
+                    <div class="flex items-center justify-between mt-2">
+                        <div id="charProgress" class="flex gap-1">
+                            <div class="h-1 w-16 rounded-full bg-gray-100 overflow-hidden">
+                                <div id="charBar" class="h-full bg-[#129385] transition-all" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <span id="charCount" class="text-xs text-gray-400 font-700">0 / 500</span>
+                    </div>
+                </div>
+
+                <!-- Anonymous -->
+                <div class="flex items-start gap-3 bg-gray-50 border border-gray-100 p-4 rounded-xl">
+                    <input type="checkbox" id="anonymous" class="mt-0.5 w-4 h-4 rounded accent-[#129385]">
+                    <label for="anonymous" class="text-sm text-gray-600 font-600 cursor-pointer">
+                        <span class="font-800 text-gray-700 block mb-0.5">Submit Anonymously</span>
+                        Your name will be hidden from the admin's view
+                    </label>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary">
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                    <span id="submitBtnText">Submit Feedback</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="toast flex items-center gap-3">
+        <i id="toastIcon" data-lucide="check-circle" class="w-5 h-5 shrink-0"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        /* ─── INIT: FETCH ORG DATA FROM SUPABASE ─── */
+        window.onload = async () => {
+            const user = JSON.parse(localStorage.getItem('user_data'));
+            if (!user) { window.location.href = 'LogIn.html'; return; }
+
+            // Set Header UI (Initials & Org Info)
+            const orgName = user.org_name || 'Your Organization';
+            document.getElementById('display-org-name').innerText = orgName;
+            document.getElementById('display-org-code').innerText = user.org_code || '—';
+            const initials = orgName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('org-initials').innerText = initials;
+
+            try {
+                // 1. Fetch Categories & Departments for this Org from your Python API
+                const response = await fetch(`http://127.0.0.1:8000/api/org-setup/${user.org_code}`);
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.detail || "Failed to load setup data");
+
+                // 2. Populate Categories (using Database IDs)
+                const catSelect = document.getElementById('category');
+                catSelect.innerHTML = '<option value="" disabled selected>Select a category</option>';
+                data.categories.forEach(cat => {
+                    catSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                });
+
+                // 3. Populate Departments (using Database IDs)
+                const deptSelect = document.getElementById('department');
+                deptSelect.innerHTML = '<option value="">None (General Feedback)</option>';
+                data.departments.forEach(dept => {
+                    deptSelect.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
+                });
+
+            } catch (err) {
+                console.error("❌ ERROR:", err);
+                showToast("Could not load organization data.", "error");
+            }
+        };
+
+        /* ─── DYNAMIC SUPERVISOR FETCH ─── */
+        async function updateSupervisors() {
+            const deptId = document.getElementById('department').value;
+            const supSelect = document.getElementById('supervisor');
+            
+            // 1. Handle "None / General Feedback" selection for Department
+            if (!deptId) {
+                supSelect.innerHTML = '<option value="" selected>None (General Feedback)</option>'; // Added value=""
+                supSelect.disabled = true;
+                return;
+            }
+
+            // 2. If a department is picked, enable the dropdown and show loading
+            supSelect.disabled = false;
+            supSelect.innerHTML = '<option value="" disabled selected>Loading supervisors...</option>';
+
+            try {
+                // 3. Fetch supervisors assigned to this specific Department ID
+                const response = await fetch(`http://127.0.0.1:8000/api/supervisors/${deptId}`);
+                const supervisors = await response.json();
+
+                // 4. Start with a "None" option so they can still give general dept feedback
+                supSelect.innerHTML = '<option value="">None (General Feedback)</option>';
+                
+                if (supervisors && supervisors.length > 0) {
+                    supervisors.forEach(sup => {
+                        supSelect.innerHTML += `<option value="${sup.id}">${sup.name}</option>`;
+                    });
+                } else {
+                    // If the array is empty, we just keep the "None" option
+                    console.log("ℹ️ No specific supervisors found for this department.");
+                }
+
+            } catch (err) {
+                console.error("❌ Supervisor fetch error:", err);
+                supSelect.innerHTML = '<option value="">Error loading supervisors</option>';
+            }
+        }
+
+        /* ─── CHAR COUNT ─── */
+        function updateCharCount(textarea) {
+            const len = textarea.value.length;
+            document.getElementById('charCount').innerText = `${len} / 500`;
+            document.getElementById('charBar').style.width = `${(len / 500) * 100}%`;
+            const bar = document.getElementById('charBar');
+            bar.style.backgroundColor = len > 450 ? '#ef4444' : len > 350 ? '#f97316' : '#129385';
+        }
+
+        /* ─── TOAST ─── */
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.className = `toast show toast-${type} flex items-center gap-3`;
+            icon.setAttribute('data-lucide', type === 'success' ? 'check-circle' : 'alert-circle');
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); }, 4000);
+        }
+
+        /* ─── FORM SUBMIT ─── */
+        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('submitBtnText');
+            const user = JSON.parse(localStorage.getItem('user_data'));
+
+            // Capture values from the form
+            const categoryId = document.getElementById('category').value;
+            const deptId = document.getElementById('department').value;
+            const supervisorId = document.getElementById('supervisor').value;
+            const feedbackText = document.getElementById('feedbackText').value;
+
+            // --- NEW VALIDATION LOGIC ---
+            // Department and Supervisor are no longer required!
+            if (!categoryId || !feedbackText.trim()) {
+                showToast('Category and feedback text are required.', 'error');
+                return;
+            }
+
+            const payload = {
+                user_id: user.id,
+                org_code: user.org_code,
+                category_id: parseInt(categoryId),
+                // If these are empty strings, send null so the database handles them correctly
+                department_id: deptId ? parseInt(deptId) : null,
+                supervisor_id: supervisorId ? parseInt(supervisorId) : null,
+                feedback_text: feedbackText,
+                is_anonymous: document.getElementById('anonymous').checked
+            };
+
+            try {
+                btn.disabled = true;
+                btnText.innerText = 'Analyzing sentiment...';
+
+                const response = await fetch('http://127.0.0.1:8000/api/submit-feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast(`Feedback submitted! AI Sentiment: ${result.sentiment} 🎯`);
+                    
+                    // Reset the form
+                    document.getElementById('feedbackForm').reset();
+                    updateCharCount(document.getElementById('feedbackText'));
+                    
+                    // Reset the dependent dropdowns to their "Loading/Initial" state
+                    const supervisorSelect = document.getElementById('supervisor');
+                    supervisorSelect.disabled = true;
+                    supervisorSelect.innerHTML = '<option value="" disabled selected>Select a department first</option>';
+                    
+                } else {
+                    showToast(result.detail || 'Submission failed.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Connection error. Is the backend running?', 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = 'Submit Feedback';
+            }
+        });
+
+        /* ─── LOGOUT ─── */
+        async function logout() {
+            try { await fetch('http://127.0.0.1:8000/api/logout', { method: 'POST' }); } catch { /* silent */ }
+            localStorage.clear();
+            window.location.href = 'LogIn.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration | Feedback Sentiment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+        body {
+            background-color: #f0faf9;
+            background-image: radial-gradient(#12938520 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+        .auth-card {
+            background: #ffffff;
+            border: 1px solid #e2f4f2;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(18, 147, 133, 0.08), 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid #e5e7eb;
+            background: #f9fffe;
+            color: #0f172a;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .input-field::placeholder { color: #9ca3af; font-weight: 500; }
+        .input-field:focus { border-color: #129385; background: #f0fdfb; box-shadow: 0 0 0 3px rgba(18, 147, 133, 0.1); }
+        .input-error { border-color: #ef4444 !important; background: #fff8f8 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08) !important; }
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #129385 0%, #0d6e63 100%);
+            color: white;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 16px rgba(18, 147, 133, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(18, 147, 133, 0.4); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 4px;
+            min-height: 1rem;
+            display: block;
+        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 60% { transform: translateX(6px); } }
+        .animate-shake { animation: shake 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        .hidden { display: none !important; }
+
+        /* Password strength meter */
+        .strength-bar {
+            height: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        /* OTP input */
+        .otp-input {
+            letter-spacing: 0.6rem;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        /* Org code display */
+        .org-code-display {
+            background: linear-gradient(135deg, #f0fdfb, #e6faf8);
+            border: 2px solid #5eead4;
+            border-radius: 14px;
+            padding: 16px 20px;
+        }
+
+        .navbar {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e2f4f2;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+        }
+
+        .divider { height: 1px; background: linear-gradient(to right, transparent, #e2f4f2, transparent); }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="navbar flex items-center justify-between px-8 py-4">
+        <div class="flex items-center gap-2.5">
+            <div class="bg-[#129385] p-1.5 rounded-xl shadow-sm">
+                <i data-lucide="message-square" class="text-white w-5 h-5"></i>
+            </div>
+            <span class="font-black text-[#0f172a] text-lg tracking-tight">Feedback <span class="text-[#129385]">Sentiment </span> <span class="text-[#0f172a]">Analysis</span></span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="#" class="text-gray-500 hover:text-[#129385] font-600 transition text-sm">Home</a>
+            <button onclick="window.location.href='LogIn.html'" class="bg-[#129385] text-white px-5 py-2 rounded-xl font-700 hover:bg-[#0d6e63] transition text-sm shadow-sm">Login</button>
+        </div>
+    </nav>
+
+    <main class="flex items-center justify-center min-h-screen pt-24 pb-12 px-4">
+
+        <!-- ── STEP 1: Registration Form ── -->
+        <div id="adminRegSection" class="auth-card w-full max-w-[540px] p-8 md:p-10 fade-in">
+
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#129385] to-[#0d6e63] rounded-2xl mb-4 shadow-lg">
+                    <i data-lucide="shield-check" class="text-white w-7 h-7"></i>
+                </div>
+                <h1 class="text-3xl font-black text-[#0f172a] mb-1.5">Admin Registration</h1>
+                <p class="text-gray-500 text-sm font-500">Create your organization's admin account</p>
+            </div>
+
+            <form id="adminRegForm" novalidate class="space-y-4">
+
+                <!-- Org Name -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Organization Name</label>
+                    <div class="relative">
+                        <i data-lucide="building-2" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                        <input type="text" id="adminOrg" oninput="smartCapitalize(this)" class="input-field pl-11" placeholder="Your company or organization">
+                    </div>
+                    <span id="adminOrgErr" class="error-msg"></span>
+                </div>
+
+                <!-- Admin Name -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                        <input type="text" id="adminName" oninput="smartCapitalize(this)" class="input-field pl-11" placeholder="Your full name">
+                    </div>
+                    <span id="adminNameErr" class="error-msg"></span>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
+                    <div class="relative">
+                        <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                        <input type="email" id="adminEmail" class="input-field pl-11" placeholder="admin@organization.com">
+                    </div>
+                    <span id="adminEmailErr" class="error-msg"></span>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Password</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                        <input type="password" id="adminPass" oninput="checkStrength(this.value)" class="input-field pl-11 pr-11" placeholder="Create a strong password">
+                        <button 
+                            type="button" 
+                            onclick="togglePassword('adminPass', this)"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#129385] transition-colors focus:outline-none flex items-center justify-center">
+                            <i data-lucide="eye-off" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <!-- Strength meter -->
+                    <div class="flex gap-1 mt-2" id="strengthBars">
+                        <div class="strength-bar flex-1 bg-gray-100" id="sb1"></div>
+                        <div class="strength-bar flex-1 bg-gray-100" id="sb2"></div>
+                        <div class="strength-bar flex-1 bg-gray-100" id="sb3"></div>
+                        <div class="strength-bar flex-1 bg-gray-100" id="sb4"></div>
+                    </div>
+                    <span id="strengthLabel" class="text-[10px] font-700 text-gray-400 mt-1 block"></span>
+                    <span id="adminPassErr" class="error-msg"></span>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                        <input type="password" id="adminConfirm" class="input-field pl-11 pr-11" placeholder="Re-enter your password">
+                        <button 
+                            type="button" 
+                            onclick="togglePassword('adminConfirm', this)" 
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#129385] transition-colors focus:outline-none flex items-center justify-center">
+                            <i data-lucide="eye-off" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <span id="adminConfirmErr" class="error-msg"></span>
+                </div>
+
+                <button type="submit" class="btn-primary mt-2">Create Admin Account</button>
+            </form>
+
+            <div class="divider my-6"></div>
+            <div class="text-center space-y-2">
+                <p class="text-sm text-gray-600 font-600">Already have an account? <button onclick="window.location.href='LogIn.html'" class="text-[#129385] font-800 hover:underline">Login</button></p>
+                <p class="text-xs text-gray-400 font-600">Need a user account? <button onclick="window.location.href='User-Registration.html'" class="text-[#129385] font-700 hover:underline">Register as User</button></p>
+            </div>
+        </div>
+
+        <!-- ── STEP 2: OTP Verification ── -->
+        <div id="otpSection" class="hidden auth-card w-full max-w-[440px] p-8 md:p-10 fade-in">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-teal-50 rounded-2xl mb-4 border border-teal-100">
+                    <i data-lucide="mail-check" class="text-[#129385] w-7 h-7"></i>
+                </div>
+                <h1 class="text-2xl font-black text-[#0f172a] mb-1.5">Verify Your Email</h1>
+                <p class="text-sm text-gray-500 font-500">We sent a 6-digit code to</p>
+                <p id="displayEmail" class="text-sm font-800 text-[#129385] mt-1"></p>
+            </div>
+
+            <form id="otpForm" class="space-y-6" novalidate>
+                <div>
+                    <label class="block text-xs font-800 text-gray-500 uppercase tracking-widest mb-3 text-center">Enter OTP Code</label>
+                    <input type="text" id="otpInput" maxlength="6" class="otp-input input-field" placeholder="• • • • • •" inputmode="numeric">
+                    <span id="otpErr" class="error-msg text-center block mt-2"></span>
+                </div>
+
+                <button type="submit" class="btn-primary">Verify & Continue</button>
+
+                <div class="text-center space-y-3 pt-2 border-t border-gray-100">
+                    <p class="text-sm text-gray-500 font-500">Didn't receive the code?</p>
+                    <button type="button" id="resendBtn" onclick="resendOTP()" class="flex items-center justify-center gap-2 w-full text-[#129385] font-800 text-sm hover:underline transition">
+                        <i data-lucide="rotate-cw" class="w-4 h-4"></i> Resend OTP
+                    </button>
+                    <button type="button" onclick="showSection('adminRegSection')" class="flex items-center justify-center gap-2 w-full text-gray-400 text-sm hover:text-gray-600 font-600 transition">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Registration
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── STEP 3: Success + Org Code ── -->
+        <div id="successSection" class="hidden fixed inset-0 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm z-50 p-4">
+            <div class="bg-white rounded-3xl p-8 text-center max-w-md w-full shadow-2xl border border-teal-100 fade-in">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-50 rounded-2xl mb-4">
+                    <i data-lucide="party-popper" class="text-green-600 w-7 h-7"></i>
+                </div>
+                <h2 class="text-2xl font-black text-[#0f172a] mb-1">Registration Successful!</h2>
+                <p class="text-gray-500 text-sm font-500 mb-6">Your admin account is ready. Share the code below with your team.</p>
+
+                <div class="text-left mb-6">
+                    <div class="flex items-center gap-2 text-[#129385] font-800 text-sm mb-3">
+                        <i data-lucide="key" class="w-4 h-4"></i>
+                        Your Organization Code
+                    </div>
+                    <div class="org-code-display flex items-center justify-between">
+                        <span id="displayOrgCode" class="font-mono font-black text-[#0d6e63] text-2xl tracking-widest uppercase">—</span>
+                        <button onclick="copyToClipboard()" class="flex items-center gap-1.5 bg-[#129385] text-white px-3 py-2 rounded-lg text-xs font-700 hover:bg-[#0d6e63] transition">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                        </button>
+                    </div>
+                    <div class="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl p-3">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"></i>
+                        <p class="text-[11px] text-amber-700 font-600 leading-relaxed">
+                            <strong>Save this code!</strong> Users will need it to register under your organization. You can always find it in your dashboard.
+                        </p>
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='Admin-Dashboard.html'" class="btn-primary">
+                    Go to Dashboard →
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+        window.tempData = {};
+
+        /* ─── SECTION MANAGER ─── */
+        function showSection(id) {
+            ['adminRegSection', 'otpSection'].forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(id);
+            if (target) target.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        /* ─── UTILITIES ─── */
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            // Look for 'i' or 'svg' because Lucide swaps them
+            const icon = btn.querySelector('i, svg');
+
+            if (!input || !icon) return;
+
+            // Toggle the type
+            const isCurrentlyPassword = input.type === 'password';
+            input.type = isCurrentlyPassword ? 'text' : 'password';
+
+            // Logic:
+            const newIconName = (input.type === 'text') ? 'eye' : 'eye-off';
+
+            icon.setAttribute('data-lucide', newIconName);
+            
+            // Crucial: Only refresh icons inside THIS button to prevent flickering/resizing
+            lucide.createIcons({
+                attrs: {
+                    class: 'w-4 h-4' // Forces the size to stay consistent
+                }
+            });
+        }
+
+        function smartCapitalize(input) {
+            const cursor = input.selectionStart;
+            input.value = input.value.replace(/(^|[\s.-])\S/g, m => m.toUpperCase());
+            input.setSelectionRange(cursor, cursor);
+        }
+
+        function clearAllErrors() {
+            document.querySelectorAll('.error-msg').forEach(el => el.innerHTML = '');
+            document.querySelectorAll('input').forEach(el => el.classList.remove('input-error'));
+        }
+
+        function shakeField(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.add('animate-shake', 'input-error');
+            setTimeout(() => el.classList.remove('animate-shake'), 400);
+        }
+
+        function copyToClipboard() {
+            const code = document.getElementById('displayOrgCode').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = event.currentTarget;
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Copied!';
+                lucide.createIcons();
+                setTimeout(() => { btn.innerHTML = orig; lucide.createIcons(); }, 2000);
+            });
+        }
+
+        /* ─── PASSWORD STRENGTH ─── */
+        function checkStrength(val) {
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(val)) score++;
+
+            const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+            const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+            const textColors = ['', 'text-red-500', 'text-orange-500', 'text-yellow-600', 'text-green-600'];
+
+            for (let i = 1; i <= 4; i++) {
+                const bar = document.getElementById(`sb${i}`);
+                bar.style.backgroundColor = i <= score ? colors[score] : '#e5e7eb';
+            }
+
+            const label = document.getElementById('strengthLabel');
+            label.innerText = val.length > 0 ? `Password strength: ${labels[score]}` : '';
+            label.className = `text-[10px] font-700 mt-1 block ${textColors[score] || 'text-gray-400'}`;
+        }
+
+        /* ─── VALIDATION ─── */
+        function runValidation() {
+            clearAllErrors();
+            let isValid = true;
+
+            const org = document.getElementById('adminOrg');
+            const name = document.getElementById('adminName');
+            const email = document.getElementById('adminEmail');
+            const pass = document.getElementById('adminPass');
+            const confirm = document.getElementById('adminConfirm');
+
+            const repeatCheck = /(.)\1\1\1/;
+            const consonantMash = /[^aeiouyAEIOUY\s'.-]{5,}/;
+            const vowelCheck = /[aeiouyAEIOUY]/;
+            const emailRegex = /^(?!\.)(?!.*?\.\.)[a-zA-Z0-9._%+-]*[a-zA-Z0-9]@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
+
+            // 1. Org name
+            let oMsgs = [];
+            if (org.value.trim().length < 3) oMsgs.push('• Minimum 3 characters required.');
+            if (org.value.trim().length > 100) oMsgs.push('• Maximum 100 characters allowed.');
+            if (repeatCheck.test(org.value) || consonantMash.test(org.value)) oMsgs.push('• Please enter a valid organization name.');
+            if (oMsgs.length) { document.getElementById('adminOrgErr').innerHTML = oMsgs.join('<br>'); shakeField('adminOrg'); isValid = false; }
+
+            // 2. Full name
+            let nMsgs = [];
+            const trimName = name.value.trim();
+            if (trimName.length < 2) nMsgs.push('• Minimum 2 characters required.');
+            if (trimName.length > 50) nMsgs.push('• Maximum 50 characters allowed.');
+            if (consonantMash.test(trimName) || !vowelCheck.test(trimName) || repeatCheck.test(trimName)) nMsgs.push('• Please enter a valid full name.');
+            if (nMsgs.length) { document.getElementById('adminNameErr').innerHTML = nMsgs.join('<br>'); shakeField('adminName'); isValid = false; }
+
+            // 3. Email
+            if (!emailRegex.test(email.value.trim().toLowerCase())) {
+                document.getElementById('adminEmailErr').innerText = '• Valid email address required.';
+                shakeField('adminEmail'); isValid = false;
+            }
+
+            // 4. Password
+            let pMsgs = [];
+            if (pass.value.length < 8) pMsgs.push('• Minimum 8 characters.');
+            if (!/[A-Z]/.test(pass.value)) pMsgs.push('• Uppercase letter required.');
+            if (!/[a-z]/.test(pass.value)) pMsgs.push('• Lowercase letter required.');
+            if (!/[0-9]/.test(pass.value)) pMsgs.push('• Number required.');
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(pass.value)) pMsgs.push('• Special character required.');
+            if (pMsgs.length) { document.getElementById('adminPassErr').innerHTML = pMsgs.join('<br>'); shakeField('adminPass'); isValid = false; }
+
+            // 5. Confirm password
+            if (pass.value !== confirm.value || !confirm.value) {
+                document.getElementById('adminConfirmErr').innerText = '• Passwords do not match.';
+                shakeField('adminConfirm'); isValid = false;
+            }
+
+            return isValid;
+        }
+
+        /* ─── FORM SUBMIT ─── */
+        document.getElementById('adminRegForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!runValidation()) return;
+
+            window.tempData = {
+                email: document.getElementById('adminEmail').value.trim(),
+                password: document.getElementById('adminPass').value,
+                full_name: document.getElementById('adminName').value.trim(),
+                org_name: document.getElementById('adminOrg').value.trim(),
+                role: 'admin'
+            };
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerText = 'Sending verification...';
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/register/admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: window.tempData.email,
+                        password: window.tempData.password,
+                        org_name: window.tempData.org_name
+                    })
+                });
+
+                if (res.ok) {
+                    document.getElementById('displayEmail').innerText = window.tempData.email;
+                    showSection('otpSection');
+                    startResendTimer(60);
+                } else {
+                    const err = await res.json();
+                    document.getElementById('adminEmailErr').innerText = '• ' + (err.detail || 'Registration failed.');
+                    shakeField('adminEmail');
+                }
+            } catch {
+                document.getElementById('adminEmailErr').innerText = '• Connection failed. Is the backend running?';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Create Admin Account';
+            }
+        });
+
+        /* ─── OTP SUBMIT ─── */
+        document.getElementById('otpForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const otpInput = document.getElementById('otpInput');
+            const otpErr = document.getElementById('otpErr');
+
+            btn.disabled = true;
+            btn.innerText = 'Verifying...';
+            otpErr.innerText = '';
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...window.tempData, token: otpInput.value })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    if (result.session) localStorage.setItem('supabase.auth.token', JSON.stringify(result.session));
+                    localStorage.setItem('user_data', JSON.stringify(result.user));
+                    document.getElementById('displayOrgCode').innerText = result.org_code;
+                    // Show success modal
+                    const success = document.getElementById('successSection');
+                    success.classList.remove('hidden');
+                    lucide.createIcons();
+                } else {
+                    otpErr.innerText = '• ' + (result.detail || 'Invalid code. Try again.');
+                    otpInput.classList.add('input-error', 'animate-shake');
+                    setTimeout(() => otpInput.classList.remove('animate-shake'), 400);
+                }
+            } catch {
+                otpErr.innerText = '• Connection lost. Please retry.';
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Verify & Continue';
+            }
+        });
+
+        /* ─── RESEND OTP ─── */
+        let resendTimer;
+        function startResendTimer(seconds) {
+            const btn = document.getElementById('resendBtn');
+            let timeLeft = seconds;
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            btn.innerText = `Resend OTP in ${timeLeft}s`;
+            clearInterval(resendTimer);
+            resendTimer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(resendTimer);
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '<i data-lucide="rotate-cw" class="w-4 h-4"></i> Resend OTP';
+                    lucide.createIcons();
+                } else {
+                    btn.innerText = `Resend OTP in ${timeLeft}s`;
+                }
+            }, 1000);
+        }
+
+        async function resendOTP() {
+            const btn = document.getElementById('resendBtn');
+            const otpErr = document.getElementById('otpErr');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerText = 'Sending...';
+            otpErr.innerText = '';
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/resend-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: window.tempData.email })
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    startResendTimer(60);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    lucide.createIcons();
+                    otpErr.innerText = '• ' + (result.detail || 'Please wait before resending.');
+                }
+            } catch {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                lucide.createIcons();
+                otpErr.innerText = '• Connection lost.';
+            }
+        }
+    </script>
+</body>
+</html>
